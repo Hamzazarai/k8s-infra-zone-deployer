@@ -1,7 +1,3 @@
-# k8s-infra-zone-deployer
-
-
-
 # Kubernetes Infrastructure Zone Deployer
 
 This project provides a user-friendly web interface to dynamically deploy Kubernetes infrastructure zones on a Proxmox virtualized environment. It combines Terraform and Ansible to fully automate infrastructure provisioning and configuration.
@@ -103,4 +99,4 @@ k8s-infra-zone-deployer/
 ##  License
 
 MIT License – Feel free to use, modify and improve this project.
-```
+

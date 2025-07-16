@@ -24,7 +24,6 @@ Terraform handles the provisioning of virtual machines (VMs), IP address assignm
 - NFS (persistent storage)
 - Harbor (image registry)
 - Prometheus & Grafana (monitoring)
-- Manus (UI prototyping)
 
 ##  Features
 

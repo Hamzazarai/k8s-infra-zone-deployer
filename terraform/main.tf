@@ -1,7 +1,6 @@
 locals {
   providers = {
     proxmox    = "./modules/proxmox_cluster"
-    aws        = "./modules/aws_cluster"
     cloudstack = "./modules/cloudstack_cluster"
   }
 }

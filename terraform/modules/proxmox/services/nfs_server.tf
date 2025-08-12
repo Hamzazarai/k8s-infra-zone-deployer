@@ -1,6 +1,6 @@
 resource "proxmox_vm_qemu" "nfs_server" {
   vmid        = var.vm_resources["nfs_server"].vmid
-  name        = "nfs"
+  name        = "nfs-server"
   target_node = var.node
   clone       = var.vm_template
   full_clone  = true

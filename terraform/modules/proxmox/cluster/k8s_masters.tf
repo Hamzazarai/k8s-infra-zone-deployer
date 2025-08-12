@@ -1,5 +1,5 @@
 locals {
-  k8s_master_names = [for i in range(1, var.k8s_master_count + 1) : "master-${i}"]
+  k8s_master_names = [for i in range(1, var.k8s_master_count + 1) : "k8s-master-${i}"]
 }
 
 resource "proxmox_vm_qemu" "k8s_masters" {

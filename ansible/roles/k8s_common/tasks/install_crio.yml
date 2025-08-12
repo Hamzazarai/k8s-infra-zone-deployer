@@ -1,0 +1,39 @@
+- name: Install prerequisites
+  apt:
+    name:
+      - software-properties-common
+      - curl
+      - apt-transport-https
+      - ca-certificates
+    state: present
+    update_cache: yes
+
+- name: Create CRI-O keyring directory
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+
+- name: Add CRI-O apt key
+  shell: |
+    curl -fsSL https://pkgs.k8s.io/addons:/cri-o:/prerelease:/main/deb/Release.key | \
+    gpg --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
+  args:
+    creates: /etc/apt/keyrings/cri-o-apt-keyring.gpg
+
+- name: Add CRI-O repo
+  copy:
+    dest: /etc/apt/sources.list.d/cri-o.list
+    content: |
+      deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://pkgs.k8s.io/addons:/cri-o:/prerelease:/main/deb/ /
+
+- name: Install CRI-O
+  apt:
+    name: cri-o
+    state: present
+    update_cache: yes
+
+- name: Enable and start CRI-O service
+  systemd:
+    name: crio
+    enabled: yes
+    state: started

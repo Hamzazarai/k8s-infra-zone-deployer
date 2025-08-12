@@ -1,0 +1,65 @@
+
+- name: Create namespace for Kubernetes dashboard
+  become_user: "{{ ansible_user }}"
+  command: kubectl create namespace kubernetes-dashboard
+  ignore_errors: yes
+
+- name: Ensure python3-pip is installed on master
+  apt:
+    name: python3-pip
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Install kubernetes python package on master
+  pip:
+    name: kubernetes
+    executable: pip3
+  become: yes
+
+- name: Apply dashboard service account
+  become_user: "{{ ansible_user }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: admin-user
+        namespace: kubernetes-dashboard
+
+- name: Apply dashboard token secret
+  become_user: "{{ ansible_user }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      type: kubernetes.io/service-account-token
+      metadata:
+        name: admin-user
+        namespace: kubernetes-dashboard
+        annotations:
+          kubernetes.io/service-account.name: admin-user
+
+- name: Bind admin-user to cluster-admin role
+  become_user: "{{ ansible_user }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: admin-user
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+      - kind: ServiceAccount
+        name: admin-user
+        namespace: kubernetes-dashboard
+
+- name: Deploy Kubernetes dashboard
+  become_user: "{{ ansible_user }}"
+  command: kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v{{ dashboard_version }}/aio/deploy/recommended.yaml

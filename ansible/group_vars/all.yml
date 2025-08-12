@@ -1,0 +1,9 @@
+# dns_servers: "8.8.8.8 1.1.1.1"
+control_ip: "192.168.1.173"
+pod_cidr: "172.16.1.0/16"
+service_cidr: "172.17.1.0/18"
+kubernetes_version: "1.30.0-1.1"
+kubernetes_version_short: "1.30"
+calico_version: "3.26.0"
+dashboard_version: "2.7.0"
+

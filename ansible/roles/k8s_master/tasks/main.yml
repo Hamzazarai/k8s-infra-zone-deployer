@@ -1,0 +1,87 @@
+- name: Stop kubelet service
+  systemd:
+    name: kubelet
+    state: stopped
+    enabled: no
+
+- name: Kill kube-apiserver and other Kubernetes control plane processes
+  shell: |
+    pkill kube-apiserver || true
+    pkill kube-controller-manager || true
+    pkill kube-scheduler || true
+    pkill etcd || true
+
+- name: Stop container runtime (crio)
+  systemd:
+    name: crio
+    state: stopped
+    enabled: no
+
+- name: Reset any previous kubeadm state (cleanup)
+  shell: kubeadm reset -f
+  ignore_errors: yes
+
+- name: Remove kube manifests (if any)
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/kubernetes/manifests/kube-apiserver.yaml
+    - /etc/kubernetes/manifests/kube-controller-manager.yaml
+    - /etc/kubernetes/manifests/kube-scheduler.yaml
+    - /etc/kubernetes/manifests/etcd.yaml
+
+- name: Remove etcd data directory
+  file:
+    path: /var/lib/etcd
+    state: absent
+
+- name: Enable and start crio
+  systemd:
+    name: crio
+    state: started
+    enabled: yes
+
+- name: Enable and start kubelet
+  systemd:
+    name: kubelet
+    state: started
+    enabled: yes
+
+- name: Initialize Kubernetes master
+  shell: kubeadm init --pod-network-cidr=10.244.0.0/16 --cri-socket=unix:///var/run/crio/crio.sock
+  register: kubeadm_init
+
+- name: Create .kube directory
+  file:
+    path: /home/ubuntu/.kube
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+
+- name: Copy admin.conf
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/ubuntu/.kube/config
+    remote_src: yes
+    owner: ubuntu
+    group: ubuntu
+    mode: '0644'
+
+- name: Install Flannel CNI
+  become: false
+  shell: |
+    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  environment:
+    KUBECONFIG: /home/ubuntu/.kube/config
+
+- name: Extract join command
+  shell: |
+    kubeadm token create --print-join-command
+  register: join_command
+
+- name: Save join command to file
+  copy:
+    content: "{{ join_command.stdout }} --cri-socket=unix:///var/run/crio/crio.sock"
+    dest: /tmp/kubeadm_join_cmd.sh

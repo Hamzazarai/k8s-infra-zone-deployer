@@ -1,0 +1,33 @@
+---
+- name: Install and configure NFS server for Kubernetes
+  hosts: nfs
+  become: true
+  tasks:
+
+    - name: Install NFS server
+      apt:
+        name: nfs-kernel-server
+        state: present
+        update_cache: true
+
+    - name: Create export directory
+      file:
+        path: /srv/nfs/kubedata
+        state: directory
+        mode: '0777'
+        owner: nobody
+        group: nogroup
+
+    - name: Configure NFS exports
+      copy:
+        dest: /etc/exports
+        content: |
+          /srv/nfs/kubedata *(rw,sync,no_subtree_check,no_root_squash)
+
+    - name: Export the shared directories
+      command: exportfs -rav
+
+    - name: Restart NFS service
+      service:
+        name: nfs-kernel-server
+        state: restarted

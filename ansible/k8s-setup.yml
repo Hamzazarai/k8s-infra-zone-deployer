@@ -1,0 +1,19 @@
+# ---
+# - name: Prepare and install Kubernetes
+#   hosts: kube_cluster
+#   become: true
+#   roles:
+#     - k8s_common
+
+- name: Initialize master
+  hosts: masters
+  become: true
+  roles:
+    # - k8s_master
+    - k8s_dashboard
+  
+# - name: Join worker nodes
+#   hosts: workers
+#   become: true
+#   roles:
+#     - k8s_worker

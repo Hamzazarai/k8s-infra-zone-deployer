@@ -1,0 +1,6 @@
+{
+    "ansible.python.interpreterPath": "c:\\Users\\hp\\anaconda3_\\envs\\FD\\python.exe",
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/tasks": "file:///c%3A/Users/hp/Desktop/stage/k8s-infra-zone-deployer/ansible/roles/kubernetes/tasks/deploy_nginx_with_autoscale.yml"
+    }
+}

@@ -1,4 +1,4 @@
-# Kubernetes Infrastructure Zone Deployer
+# AutoKube
 
 This project provides a user-friendly web interface to dynamically deploy Kubernetes infrastructure zones on a Proxmox virtualized environment. It combines Terraform and Ansible to fully automate infrastructure provisioning and configuration.
 
@@ -39,7 +39,7 @@ Terraform handles the provisioning of virtual machines (VMs), IP address assignm
 
 ```
 
-k8s-infra-zone-deployer/
+AutoKube/
 ├── frontend/                # Web interface (React, etc.)
 ├── backend/                 # Flask or FastAPI API
 │   ├── templates/

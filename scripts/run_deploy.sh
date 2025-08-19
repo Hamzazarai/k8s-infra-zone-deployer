@@ -2,7 +2,7 @@
 set -e
 
 echo "Step 0: Terraform init"
-cd terraform-proxmox-k8s/
+cd terraform/
 terraform init
 echo "Done with Terraform init."
 

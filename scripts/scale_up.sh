@@ -2,7 +2,7 @@
 set -e
 
 # Path to terraform directory
-TF_DIR="terraform-proxmox-k8s"
+TF_DIR="terraform"
 
 # Step 1: Get current worker count from Terraform state
 cd $TF_DIR
@@ -25,7 +25,7 @@ cd ..
 
 WORKER_NAME="k8s-worker-${NEW_COUNT}"
 
-NEW_WORKER_IP=$(grep "$WORKER_NAME" terraform-proxmox-k8s/vm_config.auto.tfvars | awk -F'"' '{print $2}')
+NEW_WORKER_IP=$(grep "$WORKER_NAME" terraform/vm_config.auto.tfvars | awk -F'"' '{print $2}')
 
 
 echo "[INFO] New worker IP: $NEW_WORKER_IP"

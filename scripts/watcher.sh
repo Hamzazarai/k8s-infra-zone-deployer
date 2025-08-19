@@ -5,7 +5,7 @@ CPU_THRESHOLD=80
 MEM_THRESHOLD=80
 PENDING_THRESHOLD=1
 
-SCALE_SCRIPT="/home/ubuntu/k8s_autoscaler/scale_up.sh"
+SCALE_SCRIPT="/home/ubuntu/k8s-infra-zone-deployer/scripts/scale_up.sh"
 
 log() { echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*"; }
 
@@ -40,7 +40,7 @@ while true; do
     if ! check_node_usage || ! check_pending_pods; then
         log "[INFO] Scaling triggered..."
         (
-          cd /home/ubuntu/k8s_autoscaler/ && ANSIBLE_HOST_KEY_CHECKING=False ./scripts/scale_up.sh
+          cd /home/ubuntu/k8s-infra-zone-deployer/ && ANSIBLE_HOST_KEY_CHECKING=False ./scripts/scale_up.sh
         )
         log "[INFO] Scaling done. Waiting before next check..."
         sleep 300

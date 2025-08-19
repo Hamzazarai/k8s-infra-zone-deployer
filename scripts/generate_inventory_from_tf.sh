@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TFDIR="terraform/terraform-proxmox-k8s"
-OUTFILE="terraform/ansible/inventory/hosts.ini"
+TFDIR="k8s-infra-zone-deployer/terraform"
+OUTFILE="k8s-infra-zone-deployer/ansible/inventory/hosts.ini"
 
 pushd "$TFDIR" >/dev/null
 

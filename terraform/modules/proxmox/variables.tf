@@ -1,6 +1,18 @@
-variable pm_api_url    {default = "https://192.168.1.17:8006/api2/json"}
-variable pm_user       { default = "root@pam" }
-variable pm_password   { default = "sifast" }
+variable "pm_api_url" {
+  description = "Proxmox API URL"
+  type        = string
+}
+
+variable "pm_user" {
+  description = "Proxmox User"
+  type        = string
+}
+
+variable "pm_password" {
+  description = "Proxmox Password"
+  type        = string
+}
+
 
 variable "node"        { default = "pve" }
 variable "vm_template" { default = "temp-fix-image" }

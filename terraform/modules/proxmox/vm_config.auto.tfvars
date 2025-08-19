@@ -1,3 +1,6 @@
+pm_api_url  = "https://192.168.1.17:8006/api2/json"
+pm_user     = "root@pam"
+pm_password = "sifast"
 k8s_master_count = 1
 k8s_worker_count = 1
 

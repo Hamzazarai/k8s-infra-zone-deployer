@@ -1,3 +1,7 @@
+variable pm_api_url    {default = "https://192.168.1.17:8006/api2/json"}
+variable pm_user       { default = "root@pam" }
+variable pm_password   { default = "sifast" }
+
 variable "node"        { default = "pve" }
 variable "vm_template" { default = "temp-fix-image" }
 variable "storage"     { default = "local-lvm" }

@@ -40,7 +40,7 @@
     executable: /bin/bash
   register: join_result
   retries: 3
-  delay: 5
+  delay: 10
   until: join_result.rc == 0
 
 - name: Wait for cluster setup to complete

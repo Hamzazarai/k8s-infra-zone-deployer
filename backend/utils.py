@@ -144,7 +144,7 @@ def run_deployment(config: VMConfig):
         #     f.write("Deploying NFS Storage...\n")
         # if config.enable_harbor:
         #     f.write("Deploying Harbor Registry...\n")
-        f.write("Running Terraform and Ansible deployment...\n")
+        # f.write("Running Terraform and Ansible deployment...\n")
         process = subprocess.Popen(
             ["bash", "-c", "ANSIBLE_HOST_KEY_CHECKING=False ../scripts/run_deploy.sh"],
             stdout=f, stderr=subprocess.STDOUT

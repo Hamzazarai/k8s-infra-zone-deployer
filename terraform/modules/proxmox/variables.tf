@@ -114,3 +114,16 @@ variable "vm_ips" {
   description = "Map of static IPs for all cluster VMs"
   type        = map(string)
 }
+
+variable "master_vmid" {
+  default = 300
+}
+
+variable "worker_vmid" {
+  default = 400
+}
+
+variable "nfs_server_vmid" {
+  default = 200
+}
+

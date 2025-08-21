@@ -64,33 +64,49 @@ def write_hosts_ini(config: VMConfig):
     user = config.ci_user
     password = config.ci_password
 
+    # Cluster groups
     lines.append("[kube_cluster:children]")
     lines.append("masters")
     lines.append("workers\n")
 
-    for group in ["nfs", "haproxy", "monitoring"]:
-        if group in config.vm_ips:
-            lines.append(f"[{group}]")
-            lines.append(f"{group} ansible_host={config.vm_ips[group]} "
-                         f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}\n")
+    # NFS
+    if "nfs_server" in config.vm_ips:
+        lines.append("[nfs]")
+        lines.append(f"nfs-server ansible_host={config.vm_ips['nfs_server']} "
+                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}\n")
 
+    # HAProxy
+    if "haproxy" in config.vm_ips:
+        lines.append("[haproxy]")
+        lines.append(f"haproxy ansible_host={config.vm_ips['haproxy']} "
+                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}\n")
+
+    # Monitoring
+    if "monitoring" in config.vm_ips:
+        lines.append("[monitoring]")
+        lines.append(f"monitoring ansible_host={config.vm_ips['monitoring']} "
+                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}\n")
+
+    # Masters
     lines.append("[masters]")
     for i in range(1, config.master_count + 1):
-        name = f"master-{i}"
+        name = f"k8s-master-{i}"
         if name in config.vm_ips:
             lines.append(f"{name} ansible_host={config.vm_ips[name]} "
                          f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}")
     lines.append("")
 
+    # Workers
     lines.append("[workers]")
     for i in range(1, config.worker_count + 1):
-        name = f"worker-{i}"
+        name = f"k8s-worker-{i}"
         if name in config.vm_ips:
             lines.append(f"{name} ansible_host={config.vm_ips[name]} "
                          f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}")
 
     HOSTS_INI_PATH.write_text("\n".join(lines))
     return str(HOSTS_INI_PATH)
+
 
 
 def generate_config_files(config: VMConfig):

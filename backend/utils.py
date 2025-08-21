@@ -106,7 +106,7 @@ def run_deployment():
 
     with open(log_file, "w") as f:
         process = subprocess.Popen(
-            ["bash", "../scripts/run_deploy.sh"],
+            ["bash", "-c", "ANSIBLE_HOST_KEY_CHECKING=False ../scripts/run_deploy.sh"],
             stdout=f, stderr=subprocess.STDOUT
         )
         process.wait()

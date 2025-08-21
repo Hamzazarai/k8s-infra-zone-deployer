@@ -80,7 +80,8 @@ variable "master_ram" {
 
 variable "master_disk" {
   description = "Disk size (GB) for master nodes"
-  type        = number
+  type        = string
+  default     = "20G"  # Default value can be overridden in auto.tfvars
 }
 
 variable "worker_cpu" {
@@ -95,7 +96,8 @@ variable "worker_ram" {
 
 variable "worker_disk" {
   description = "Disk size (GB) for worker nodes"
-  type        = number
+  type        = string
+  default     = "30G"  # Default value can be overridden in auto.tfvars
 }
 
 # Cloud-init

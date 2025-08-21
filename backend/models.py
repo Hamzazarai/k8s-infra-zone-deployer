@@ -22,10 +22,12 @@ class VMConfig(BaseModel):
     worker_count: int
     master_cpu: int
     master_ram: int
-    master_disk: int
+    master_disk: str
+
     worker_cpu: int
     worker_ram: int
-    worker_disk: int
+    worker_disk: str
+
     ci_user: str = "ubuntu"
     ci_password: str = "ubuntu123"
     vm_ips: Dict[str, str] = Field(..., description="Nom => IP")

@@ -2,7 +2,7 @@ from pathlib import Path
 import subprocess
 from models import VMConfig
 
-VM_CONFIG_PATH = Path("../terraform/vm_config.auto.tfvars")
+VM_CONFIG_PATH = Path("../terraform/modules/proxmox/vm_config.auto.tfvars")
 HOSTS_INI_PATH = Path("../ansible/inventory/hosts.ini")
 
 

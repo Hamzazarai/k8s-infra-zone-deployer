@@ -14,7 +14,6 @@ const AutoKube = () => {
     internal_bridge: '',
     external_bridge: '',
     gateway: '',
-    nat_network_cidr: '10.0.0.0/24',
     master_count: 3,
     worker_count: 3,
     master_cpu: 4,
@@ -23,9 +22,24 @@ const AutoKube = () => {
     worker_cpu: 8,
     worker_ram: 16,
     worker_disk: 100,
-    ci_user: '',
-    ci_password: '',
-    vm_ips: {}
+    ci_user: 'ubuntu',
+    ci_password: 'ubuntu123',
+    vm_ips: {},
+    enable_haproxy: true,
+    haproxy_ip: '10.0.0.88',
+    haproxy_cpu: 4,
+    haproxy_ram: 8,
+    haproxy_disk: 50,
+    enable_nfs: true,
+    nfs_ip: '10.0.0.88',
+    nfs_cpu: 2,
+    nfs_ram: 8,
+    nfs_disk: 100,
+    enable_harbor: true,
+    harbor_ip: '10.0.0.77',
+    harbor_cpu: 2,
+    harbor_ram: 8,
+    harbor_disk: 50,
   });
 
   const [isDeploying, setIsDeploying] = useState(false);
@@ -34,10 +48,8 @@ const AutoKube = () => {
   const [vms, setVms] = useState({ masters: {}, workers: {}, others: {} });
   const [backendStatus, setBackendStatus] = useState('disconnected');
 
-  // Backend API base URL - adjust this to your backend URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
-  // Check backend connectivity on component mount
   useEffect(() => {
     checkBackendConnection();
     loadExistingVMs();
@@ -82,13 +94,30 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000
     }));
   };
 
+  const handleVmIpChange = (name, ip) => {
+    setFormData(prev => ({
+      ...prev,
+      vm_ips: {
+        ...prev.vm_ips,
+        [name]: ip
+      }
+    }));
+  };
+
   const deployToBackend = async () => {
     setIsDeploying(true);
     setDeploymentLogs([]);
     setCurrentPhase('Connecting to backend...');
 
     try {
-      // Send the payload exactly as your VMConfig model expects
+      // Construct vm_ips with master and worker IPs, plus optional components
+      const vm_ips = {
+        ...formData.vm_ips,
+        ...(formData.enable_haproxy ? { 'haproxy': formData.haproxy_ip } : {}),
+        ...(formData.enable_nfs ? { 'nfs': formData.nfs_ip } : {}),
+        ...(formData.enable_harbor ? { 'harbor': formData.harbor_ip } : {}),
+      };
+
       const payload = {
         zone_name: formData.zone_name,
         provider_type: formData.provider_type,
@@ -101,7 +130,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000
         internal_bridge: formData.internal_bridge,
         external_bridge: formData.external_bridge || null,
         gateway: formData.gateway,
-        nat_network_cidr: formData.nat_network_cidr,
         master_count: formData.master_count,
         worker_count: formData.worker_count,
         master_cpu: formData.master_cpu,
@@ -112,7 +140,22 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000
         worker_disk: formData.worker_disk,
         ci_user: formData.ci_user,
         ci_password: formData.ci_password,
-        vm_ips: formData.vm_ips
+        vm_ips,
+        enable_haproxy: formData.enable_haproxy,
+        haproxy_ip: formData.haproxy_ip,
+        haproxy_cpu: formData.haproxy_cpu,
+        haproxy_ram: formData.haproxy_ram,
+        haproxy_disk: formData.haproxy_disk,
+        enable_nfs: formData.enable_nfs,
+        nfs_ip: formData.nfs_ip,
+        nfs_cpu: formData.nfs_cpu,
+        nfs_ram: formData.nfs_ram,
+        nfs_disk: formData.nfs_disk,
+        enable_harbor: formData.enable_harbor,
+        harbor_ip: formData.harbor_ip,
+        harbor_cpu: formData.harbor_cpu,
+        harbor_ram: formData.harbor_ram,
+        harbor_disk: formData.harbor_disk,
       };
 
       setDeploymentLogs(prev => [...prev, '📡 Sending configuration to backend...']);
@@ -143,7 +186,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000
       
       setCurrentPhase('Deployment initiated successfully');
       
-      // Refresh VM list after deployment
       setTimeout(() => {
         loadExistingVMs();
       }, 2000);
@@ -165,14 +207,55 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000
       setDeploymentLogs(['❌ Backend is not connected. Please check your API server.']);
       return;
     }
+    // Validate that all master and worker IPs are provided
+    for (let i = 1; i <= formData.master_count; i++) {
+      if (!formData.vm_ips[`master-${i}`]) {
+        setDeploymentLogs(['❌ Error: Please provide an IP address for all master nodes.']);
+        return;
+      }
+    }
+    for (let i = 1; i <= formData.worker_count; i++) {
+      if (!formData.vm_ips[`worker-${i}`]) {
+        setDeploymentLogs(['❌ Error: Please provide an IP address for all worker nodes.']);
+        return;
+      }
+    }
+    // Validate that resource values are provided for enabled components
+    if (formData.enable_haproxy && (!formData.haproxy_ip || !formData.haproxy_cpu || !formData.haproxy_ram || !formData.haproxy_disk)) {
+      setDeploymentLogs(['❌ Error: Please provide IP, CPU, RAM, and Disk for HAProxy.']);
+      return;
+    }
+    if (formData.enable_nfs && (!formData.nfs_ip || !formData.nfs_cpu || !formData.nfs_ram || !formData.nfs_disk)) {
+      setDeploymentLogs(['❌ Error: Please provide IP, CPU, RAM, and Disk for NFS.']);
+      return;
+    }
+    if (formData.enable_harbor && (!formData.harbor_ip || !formData.harbor_cpu || !formData.harbor_ram || !formData.harbor_disk)) {
+      setDeploymentLogs(['❌ Error: Please provide IP, CPU, RAM, and Disk for Harbor.']);
+      return;
+    }
     deployToBackend();
   };
 
   const totalResources = {
-    vms: 3 + formData.master_count + formData.worker_count,
-    cpu: formData.master_count * formData.master_cpu + formData.worker_count * formData.worker_cpu + 8,
-    ram: formData.master_count * formData.master_ram + formData.worker_count * formData.worker_ram + 24,
-    disk: formData.master_count * formData.master_disk + formData.worker_count * formData.worker_disk + 200
+    vms: (formData.enable_haproxy ? 1 : 0) +
+         (formData.enable_nfs ? 1 : 0) +
+         (formData.enable_harbor ? 1 : 0) +
+         formData.master_count + formData.worker_count,
+    cpu: formData.master_count * formData.master_cpu +
+         formData.worker_count * formData.worker_cpu +
+         (formData.enable_haproxy ? formData.haproxy_cpu : 0) +
+         (formData.enable_nfs ? formData.nfs_cpu : 0) +
+         (formData.enable_harbor ? formData.harbor_cpu : 0),
+    ram: formData.master_count * formData.master_ram +
+         formData.worker_count * formData.worker_ram +
+         (formData.enable_haproxy ? formData.haproxy_ram : 0) +
+         (formData.enable_nfs ? formData.nfs_ram : 0) +
+         (formData.enable_harbor ? formData.harbor_ram : 0),
+    disk: formData.master_count * formData.master_disk +
+          formData.worker_count * formData.worker_disk +
+          (formData.enable_haproxy ? formData.haproxy_disk : 0) +
+          (formData.enable_nfs ? formData.nfs_disk : 0) +
+          (formData.enable_harbor ? formData.harbor_disk : 0)
   };
 
   const getStatusColor = (status) => {
@@ -337,7 +420,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000
                     <Network className="w-5 h-5 text-purple-400" />
                     Network Configuration
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-2">External Bridge (Optional)</label>
                       <input
@@ -359,17 +442,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000
                         required
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">NAT Network CIDR</label>
-                      <input
-                        type="text"
-                        value={formData.nat_network_cidr}
-                        onChange={(e) => handleInputChange('nat_network_cidr', e.target.value)}
-                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        placeholder="10.0.0.0/24"
-                        required
-                      />
-                    </div>
                   </div>
                 </div>
 
@@ -381,7 +453,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2"> ser</label>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">CI User</label>
                       <input
                         type="text"
                         value={formData.ci_user}
@@ -461,6 +533,24 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000
                       />
                     </div>
                   </div>
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium text-slate-300 mb-2">Master Node IPs</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {Array.from({ length: formData.master_count }, (_, i) => i + 1).map((index) => (
+                        <div key={`master-${index}`}>
+                          <label className="block text-sm font-medium text-slate-300 mb-1">{`Master ${index} IP`}</label>
+                          <input
+                            type="text"
+                            value={formData.vm_ips[`master-${index}`] || ''}
+                            onChange={(e) => handleVmIpChange(`master-${index}`, e.target.value)}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder={`10.0.0.${10 + index}`}
+                            required
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Workers Configuration */}
@@ -519,6 +609,217 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000
                         onChange={(e) => handleInputChange('worker_disk', parseInt(e.target.value))}
                         className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500"
                       />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium text-slate-300 mb-2">Worker Node IPs</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {Array.from({ length: formData.worker_count }, (_, i) => i + 1).map((index) => (
+                        <div key={`worker-${index}`}>
+                          <label className="block text-sm font-medium text-slate-300 mb-1">{`Worker ${index} IP`}</label>
+                          <input
+                            type="text"
+                            value={formData.vm_ips[`worker-${index}`] || ''}
+                            onChange={(e) => handleVmIpChange(`worker-${index}`, e.target.value)}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            placeholder={`10.0.0.${20 + index}`}
+                            required
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Infrastructure Components Configuration */}
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <Server className="w-5 h-5 text-yellow-400" />
+                    Infrastructure Components
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.enable_haproxy}
+                          onChange={(e) => handleInputChange('enable_haproxy', e.target.checked)}
+                          className="w-4 h-4 bg-white/10 border border-white/20 rounded text-yellow-500 focus:ring-yellow-500"
+                        />
+                        <label className="text-sm font-medium text-slate-300">HAProxy Load Balancer</label>
+                      </div>
+                      {formData.enable_haproxy && (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={formData.haproxy_ip}
+                            onChange={(e) => handleInputChange('haproxy_ip', e.target.value)}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            placeholder="10.0.0.88"
+                            required
+                          />
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-1">CPU</label>
+                              <input
+                                type="number"
+                                min="2"
+                                max="16"
+                                value={formData.haproxy_cpu}
+                                onChange={(e) => handleInputChange('haproxy_cpu', parseInt(e.target.value))}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-1">RAM (GB)</label>
+                              <input
+                                type="number"
+                                min="4"
+                                max="64"
+                                value={formData.haproxy_ram}
+                                onChange={(e) => handleInputChange('haproxy_ram', parseInt(e.target.value))}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-1">Disk (GB)</label>
+                              <input
+                                type="number"
+                                min="20"
+                                max="500"
+                                value={formData.haproxy_disk}
+                                onChange={(e) => handleInputChange('haproxy_disk', parseInt(e.target.value))}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                required
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.enable_nfs}
+                          onChange={(e) => handleInputChange('enable_nfs', e.target.checked)}
+                          className="w-4 h-4 bg-white/10 border border-white/20 rounded text-yellow-500 focus:ring-yellow-500"
+                        />
+                        <label className="text-sm font-medium text-slate-300">NFS Storage</label>
+                      </div>
+                      {formData.enable_nfs && (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={formData.nfs_ip}
+                            onChange={(e) => handleInputChange('nfs_ip', e.target.value)}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            placeholder="10.0.0.88"
+                            required
+                          />
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-1">CPU</label>
+                              <input
+                                type="number"
+                                min="2"
+                                max="16"
+                                value={formData.nfs_cpu}
+                                onChange={(e) => handleInputChange('nfs_cpu', parseInt(e.target.value))}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-1">RAM (GB)</label>
+                              <input
+                                type="number"
+                                min="4"
+                                max="64"
+                                value={formData.nfs_ram}
+                                onChange={(e) => handleInputChange('nfs_ram', parseInt(e.target.value))}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-1">Disk (GB)</label>
+                              <input
+                                type="number"
+                                min="50"
+                                max="1000"
+                                value={formData.nfs_disk}
+                                onChange={(e) => handleInputChange('nfs_disk', parseInt(e.target.value))}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                required
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.enable_harbor}
+                          onChange={(e) => handleInputChange('enable_harbor', e.target.checked)}
+                          className="w-4 h-4 bg-white/10 border border-white/20 rounded text-yellow-500 focus:ring-yellow-500"
+                        />
+                        <label className="text-sm font-medium text-slate-300">Harbor Registry</label>
+                      </div>
+                      {formData.enable_harbor && (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={formData.harbor_ip}
+                            onChange={(e) => handleInputChange('harbor_ip', e.target.value)}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            placeholder="10.0.0.77"
+                            required
+                          />
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-1">CPU</label>
+                              <input
+                                type="number"
+                                min="2"
+                                max="16"
+                                value={formData.harbor_cpu}
+                                onChange={(e) => handleInputChange('harbor_cpu', parseInt(e.target.value))}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-1">RAM (GB)</label>
+                              <input
+                                type="number"
+                                min="4"
+                                max="64"
+                                value={formData.harbor_ram}
+                                onChange={(e) => handleInputChange('harbor_ram', parseInt(e.target.value))}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-1">Disk (GB)</label>
+                              <input
+                                type="number"
+                                min="20"
+                                max="500"
+                                value={formData.harbor_disk}
+                                onChange={(e) => handleInputChange('harbor_disk', parseInt(e.target.value))}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                required
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -635,18 +936,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000
               <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6">
                 <h3 className="text-xl font-bold text-white mb-4">Infrastructure Components</h3>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-slate-300">
-                    <Network className="w-4 h-4 text-blue-400" />
-                    <span>HAProxy Load Balancer</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-slate-300">
-                    <Database className="w-4 h-4 text-green-400" />
-                    <span>NFS Storage (10.0.0.88)</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-slate-300">
-                    <Shield className="w-4 h-4 text-orange-400" />
-                    <span>Harbor Registry (10.0.0.77)</span>
-                  </div>
                   <div className="flex items-center gap-3 text-slate-300">
                     <Monitor className="w-4 h-4 text-purple-400" />
                     <span>Prometheus + Grafana</span>

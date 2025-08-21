@@ -4,8 +4,18 @@ from models import VMConfig
 from utils import generate_config_files, run_deployment
 import json
 from pathlib import Path
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI(title="K8s Autoscaler Backend", version="1.1")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],  # React dev server
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 VM_STATE_FILE = Path("./data/vm_state.json")
 

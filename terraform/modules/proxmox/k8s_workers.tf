@@ -1,5 +1,5 @@
 locals {
-  k8s_worker_names = [for i in range(1, var.worker_count + 1) : "k8s-worker-${i}"]
+  k8s_worker_names = [for i in range(1, var.worker_count + 1) : "worker-${i}"]
 }
 
 resource "proxmox_vm_qemu" "k8s_workers" {

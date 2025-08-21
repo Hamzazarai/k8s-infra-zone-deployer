@@ -45,13 +45,13 @@ def write_tfvars(config: VMConfig):
     # Optional component resources
     content.append(f'haproxy_cpu = {config.haproxy_cpu if config.enable_haproxy else 0}')
     content.append(f'haproxy_ram = {config.haproxy_ram if config.enable_haproxy else 0}')
-    content.append(f'haproxy_disk = {config.haproxy_disk if config.enable_haproxy else 0}\n')
+    content.append(f'haproxy_disk = "{config.haproxy_disk if config.enable_haproxy else 0}"\n')
     content.append(f'nfs_cpu = {config.nfs_cpu if config.enable_nfs else 0}')
     content.append(f'nfs_ram = {config.nfs_ram if config.enable_nfs else 0}')
-    content.append(f'nfs_disk = {config.nfs_disk if config.enable_nfs else 0}\n')
+    content.append(f'nfs_disk = "{config.nfs_disk if config.enable_nfs else 0}"\n')
     content.append(f'harbor_cpu = {config.harbor_cpu if config.enable_harbor else 0}')
     content.append(f'harbor_ram = {config.harbor_ram if config.enable_harbor else 0}')
-    content.append(f'harbor_disk = {config.harbor_disk if config.enable_harbor else 0}\n')
+    content.append(f'harbor_disk = "{config.harbor_disk if config.enable_harbor else 0}"\n')
 
     # Credentials cloud-init
     content.append(f'cloud_init_user = "{config.ci_user}"')
@@ -81,15 +81,15 @@ def write_hosts_ini(config: VMConfig):
     lines.append("[kube_cluster:children]")
     lines.append("masters")
     lines.append("workers")
-    if config.enable_haproxy:
-        lines.append("haproxy")
-    if config.enable_nfs:
-        lines.append("nfs")
-    if config.enable_harbor:
-        lines.append("harbor")
-    if "monitoring" in config.vm_ips:
-        lines.append("monitoring")
-    lines.append("")
+    # if config.enable_haproxy:
+    #     lines.append("haproxy")
+    # if config.enable_nfs:
+    #     lines.append("nfs")
+    # if config.enable_harbor:
+    #     lines.append("harbor")
+    # if "monitoring" in config.vm_ips:
+    #     lines.append("monitoring")
+    # lines.append("")
 
     # NFS
     if "nfs_server" in config.vm_ips:
@@ -140,13 +140,13 @@ def run_deployment(config: VMConfig):
     log_file.parent.mkdir(exist_ok=True)
 
     with open(log_file, "a") as f:
-        f.write("Starting deployment...\n")
-        if config.enable_haproxy:
-            f.write("Deploying HAProxy Load Balancer...\n")
-        if config.enable_nfs:
-            f.write("Deploying NFS Storage...\n")
-        if config.enable_harbor:
-            f.write("Deploying Harbor Registry...\n")
+        # f.write("Starting deployment...\n")
+        # if config.enable_haproxy:
+        #     f.write("Deploying HAProxy Load Balancer...\n")
+        # if config.enable_nfs:
+        #     f.write("Deploying NFS Storage...\n")
+        # if config.enable_harbor:
+        #     f.write("Deploying Harbor Registry...\n")
         f.write("Running Terraform and Ansible deployment...\n")
         process = subprocess.Popen(
             ["bash", "-c", "ANSIBLE_HOST_KEY_CHECKING=False ../scripts/run_deploy.sh"],

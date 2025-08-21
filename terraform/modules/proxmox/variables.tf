@@ -23,6 +23,7 @@ variable "provider_credentials" {
 variable "nat_network_cidr" {
   description = "NAT network CIDR for the cluster"
   type        = string
+  default     = "192.168.1.0/24"
 }
 
 variable "gateway" {
@@ -129,3 +130,71 @@ variable "nfs_server_vmid" {
   default = 200
 }
 
+# HAProxy resources
+variable "haproxy_cpu" {
+  description = "vCPU count for HAProxy VM"
+  type        = number
+}
+
+variable "haproxy_ram" {
+  description = "RAM (MB) for HAProxy VM"
+  type        = number
+}
+
+variable "haproxy_disk" {
+  description = "Disk size (GB) for HAProxy VM"
+  type        = string
+  default     = "30G"  # Default value can be overridden in auto.tfvars
+}
+
+variable "enable_haproxy" {
+  description = "Whether to deploy HAProxy VM"
+  type        = bool
+  default     = false
+}
+
+# NFS resources
+variable "nfs_cpu" {
+  description = "vCPU count for NFS server VM"
+  type        = number
+}
+
+variable "nfs_ram" {
+  description = "RAM (MB) for NFS server VM"
+  type        = number
+}
+
+variable "nfs_disk" {
+  description = "Disk size (GB) for NFS server VM"
+  type        = string
+  default     = "50G"  # Default value can be overridden in auto.tfvars
+}
+
+variable "enable_nfs" {
+  description = "Whether to deploy NFS server VM"
+  type        = bool
+  default     = false
+}
+
+# Harbor resources
+variable "harbor_cpu" {
+  description = "vCPU count for Harbor registry VM"
+  type        = number
+}
+
+variable "harbor_ram" {
+  description = "RAM (MB) for Harbor registry VM"
+  type        = number
+}
+
+variable "harbor_disk" {
+  description = "Disk size (GB) for Harbor registry VM"
+  type        = string
+  default     = "30G"  # Default value can be overridden in auto.tfvars
+}
+
+variable "enable_harbor" {
+  description = "Whether to deploy Harbor registry VM"
+  type        = bool
+  default     = false
+}

@@ -1,59 +1,63 @@
-- name: Install and configure Harbor (HTTP mode)
-  hosts: monitoring
+- name: Ensure helm is installed
+  command: helm version
+  register: helm_installed
+  failed_when: helm_installed.rc != 0 and 'version.BuildInfo' not in helm_installed.stdout
+  ignore_errors: true
+
+- name: Install helm (if not installed)
+  shell: |
+    curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+  when: helm_installed.rc != 0
+
+- name: Ensure pip3 is installed
+  apt:
+    name: python3-pip
+    state: present
+    update_cache: yes
   become: true
-  vars:
-    harbor_version: "v2.10.0"
-    harbor_dir: "/opt/harbor"
-    harbor_hostname: "{{ inventory_hostname }}"
-    harbor_admin_password: "Harbor12345"
-    harbor_installer_url: "https://github.com/goharbor/harbor/releases/download/{{ harbor_version }}/harbor-online-installer-{{ harbor_version }}.tgz"
-    harbor_installer_tgz: "{{ harbor_dir }}/harbor-installer.tgz"
 
-  tasks:
+- name: Install Python Kubernetes client
+  pip:
+    name: kubernetes
+    state: present
+  become: true
 
-    - name: Install Docker and Docker Compose
-      apt:
-        name: [docker.io, docker-compose]
-        state: present
-        update_cache: yes
+- name: Create monitoring namespace
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: monitoring
+    state: present
+    kubeconfig: /etc/kubernetes/admin.conf
 
-    - name: Create Harbor directory
-      file:
-        path: "{{ harbor_dir }}"
-        state: directory
+- name: Add prometheus-community helm repo
+  command: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+  args:
+    creates: /root/.cache/helm/repository/prometheus-community-index.yaml
 
-    - name: Download Harbor installer
-      get_url:
-        url: "{{ harbor_installer_url }}"
-        dest: "{{ harbor_installer_tgz }}"
+- name: Update helm repo
+  command: helm repo update
 
-    - name: Extract Harbor installer
-      unarchive:
-        src: "{{ harbor_installer_tgz }}"
-        dest: "{{ harbor_dir }}"
-        remote_src: yes
+- name: Copy values.yaml to k8s-master-1
+  copy:
+    src: "{{ role_path }}/files/values.yaml"
+    dest: /tmp/values.yaml
 
-    - name: Template harbor.yml
-      template:
-        src: harbor.yml.j2
-        dest: "{{ harbor_dir }}/harbor/harbor.yml"
+- name: Deploy kube-prometheus-stack via Helm (command workaround)
+  command: >
+    helm upgrade -i prometheus-stack prometheus-community/kube-prometheus-stack
+    --namespace monitoring
+    --create-namespace
+    --reset-values
+    --wait
+    --timeout 1200s
+    --values /tmp/values.yaml
+    --kubeconfig /etc/kubernetes/admin.conf
 
-    - name: Run Harbor install.sh
-      ansible.builtin.shell: ./install.sh
-      args:
-        chdir: "{{ harbor_dir }}/harbor"
 
-    # - name: Configure Docker to trust insecure Harbor registry
-    #   copy:
-    #     dest: /etc/docker/daemon.json
-    #     content: |
-    #       {
-    #         "insecure-registries": ["{{ harbor_hostname }}"]
-    #       }
-    #   notify: Restart Docker
 
-  # handlers:
-  #   - name: Restart Docker
-  #     systemd:
-  #       name: docker
-  #       state: restarted
+
+
+
+
+

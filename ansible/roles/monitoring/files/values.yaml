@@ -1,0 +1,25 @@
+grafana:
+  adminPassword: admin
+  service:
+    type: NodePort
+    nodePort: 32001
+  ingress:
+    enabled: false
+
+prometheus:
+  service:
+    type: NodePort
+    nodePort: 32002
+  ingress:
+    enabled: false
+
+alertmanager:
+  enabled: true
+  service:
+    type: ClusterIP
+
+defaultRules:
+  create: true
+
+kubeStateMetrics:
+  enabled: true

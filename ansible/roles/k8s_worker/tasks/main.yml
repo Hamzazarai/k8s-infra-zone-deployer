@@ -1,9 +1,32 @@
 ---
-- name: Fetch join command from master
+- name: Reset Kubernetes on worker node
+  shell: kubeadm reset -f
+  ignore_errors: yes
+
+- name: Clean leftover Kubernetes files
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/kubernetes/pki
+    - /etc/kubernetes/kubelet.conf
+    - /etc/kubernetes/manifests
+
+- name: Ensure master host variable exists
+  assert:
+    that:
+      - groups['masters'] is defined
+      - groups['masters'] | length > 0
+    fail_msg: "No master defined in inventory (groups['masters'] is empty)."
+
+- name: Fetch join command from master (slurp)
   slurp:
     src: /tmp/kubeadm_join_cmd.sh
-  delegate_to: k8s-master-1
+  delegate_to: "{{ groups['masters'][0] }}"
   register: join_cmd_encoded
+  retries: 5
+  delay: 3
+  until: join_cmd_encoded is success
 
 - name: Decode and save join command
   copy:
@@ -11,6 +34,16 @@
     dest: /tmp/kubeadm_join_cmd.sh
     mode: '0755'
 
-- name: Join Kubernetes cluster
+- name: Run join command
   shell: bash /tmp/kubeadm_join_cmd.sh
-  
+  args:
+    executable: /bin/bash
+  register: join_result
+  retries: 3
+  delay: 5
+  until: join_result.rc == 0
+
+- name: Wait for cluster setup to complete
+  pause:
+    seconds: 60
+    prompt: "Waiting 60 seconds for cluster setup"

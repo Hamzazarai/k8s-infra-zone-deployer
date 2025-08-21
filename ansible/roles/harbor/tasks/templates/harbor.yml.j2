@@ -1,0 +1,37 @@
+hostname: {{ harbor_host }}
+
+http:
+  port: 80
+
+harbor_admin_password: {{ harbor_admin_password }}
+
+database:
+  password: root123
+
+jobservice:
+  # Maximum number of job workers in job service
+  max_job_workers: 10
+  # The jobLoggers backend name, only support "STD_OUTPUT", "FILE" and/or "DB"
+  job_loggers:
+    - STD_OUTPUT
+    - FILE
+    # - DB
+  # The jobLogger sweeper duration (ignored if `jobLogger` is `stdout`)
+  logger_sweeper_duration: 1 #days
+
+
+notification:
+  webhook_job_max_retry: 3
+  webhook_job_http_client_timeout: 30
+
+log:
+  level: info
+  local:
+    rotate_count: 50
+    rotate_size: 200M
+    location: /var/log/harbor
+
+
+data_volume: /data
+
+enable_chartmuseum: true

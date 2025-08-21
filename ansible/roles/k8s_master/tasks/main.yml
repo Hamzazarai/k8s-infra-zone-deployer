@@ -36,6 +36,10 @@
     path: /var/lib/etcd
     state: absent
 
+- name: Kill process using port 10257
+  shell: |
+    fuser -k 10257/tcp || true
+
 - name: Enable and start crio
   systemd:
     name: crio

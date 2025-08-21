@@ -1,0 +1,58 @@
+- name: Install and configure Harbor (HTTP mode)
+  hosts: monitoring
+  become: true
+  vars:
+    harbor_version: "v2.10.0"
+    harbor_dir: "/opt/harbor"
+    harbor_hostname: "{{ inventory_hostname }}"
+    harbor_host: "{{ ansible_host }}"
+    harbor_admin_password: "Harbor12345"
+    harbor_installer_url: "https://github.com/goharbor/harbor/releases/download/{{ harbor_version }}/harbor-online-installer-{{ harbor_version }}.tgz"
+    harbor_installer_tgz: "{{ harbor_dir }}/harbor-installer.tgz"
+
+  tasks:
+
+    - name: Install Docker and Docker Compose
+      apt:
+        name: [docker.io, docker-compose]
+        state: present
+        update_cache: yes
+
+    - name: Create Harbor directory
+      file:
+        path: "{{ harbor_dir }}"
+        state: directory
+
+    - name: Download Harbor installer
+      get_url:
+        url: "{{ harbor_installer_url }}"
+        dest: "{{ harbor_installer_tgz }}"
+
+    - name: Extract Harbor installer
+      unarchive:
+        src: "{{ harbor_installer_tgz }}"
+        dest: "{{ harbor_dir }}"
+        remote_src: yes
+
+    - name: Template harbor.yml
+      template:
+        src: harbor.yml.j2
+        dest: "{{ harbor_dir }}/harbor/harbor.yml"
+
+    - name: Run Harbor install.sh
+      ansible.builtin.shell: ./install.sh
+      args:
+        chdir: "{{ harbor_dir }}/harbor"
+
+    - name: Configure Docker to trust insecure Harbor registry
+      copy:
+        dest: /etc/docker/daemon.json
+        content: |
+          {
+            "insecure-registries": ["{{ harbor_host }}"]
+          }
+      notify: Restart Docker
+
+    # - name: Restart Docker service 
+    #   shell: systemctl restart docker
+    #   become: true

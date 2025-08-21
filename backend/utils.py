@@ -81,53 +81,50 @@ def write_hosts_ini(config: VMConfig):
     lines.append("[kube_cluster:children]")
     lines.append("masters")
     lines.append("workers")
-    # if config.enable_haproxy:
-    #     lines.append("haproxy")
-    # if config.enable_nfs:
-    #     lines.append("nfs")
-    # if config.enable_harbor:
-    #     lines.append("harbor")
-    # if "monitoring" in config.vm_ips:
-    #     lines.append("monitoring")
-    # lines.append("")
+    lines.append("")  # blank line
 
     # NFS
-    if "nfs_server" in config.vm_ips:
+    if config.enable_nfs and "nfs" in config.vm_ips:
         lines.append("[nfs]")
-        lines.append(f"nfs-server ansible_host={config.vm_ips['nfs_server']} "
-                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}\n")
+        lines.append(f"nfs ansible_host={config.vm_ips['nfs']} "
+                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}")
+        lines.append("")
 
     # HAProxy
-    if "haproxy" in config.vm_ips:
+    if config.enable_haproxy and "haproxy" in config.vm_ips:
         lines.append("[haproxy]")
         lines.append(f"haproxy ansible_host={config.vm_ips['haproxy']} "
-                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}\n")
+                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}")
+        lines.append("")
 
-    # Monitoring
-    if "monitoring" in config.vm_ips:
-        lines.append("[monitoring]")
-        lines.append(f"monitoring ansible_host={config.vm_ips['monitoring']} "
-                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}\n")
+    # Harbor
+    if config.enable_harbor and "harbor" in config.vm_ips:
+        lines.append("[harbor]")
+        lines.append(f"harbor ansible_host={config.vm_ips['harbor']} "
+                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}")
+        lines.append("")
 
     # Masters
     lines.append("[masters]")
-    for i in range(1, config.master_count + 1):
-        name = f"k8s-master-{i}"
-        if name in config.vm_ips:
-            lines.append(f"{name} ansible_host={config.vm_ips[name]} "
+    for key, ip in config.vm_ips.items():
+        if key.startswith("master-"):
+            lines.append(f"{key} ansible_host={ip} "
                          f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}")
     lines.append("")
 
     # Workers
     lines.append("[workers]")
-    for i in range(1, config.worker_count + 1):
-        name = f"k8s-worker-{i}"
-        if name in config.vm_ips:
-            lines.append(f"{name} ansible_host={config.vm_ips[name]} "
+    for key, ip in config.vm_ips.items():
+        if key.startswith("worker-"):
+            lines.append(f"{key} ansible_host={ip} "
                          f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}")
 
+    # Write to file
     HOSTS_INI_PATH.write_text("\n".join(lines))
     return str(HOSTS_INI_PATH)
+
+
+
 
 def generate_config_files(config: VMConfig):
     tfvars_path = write_tfvars(config)

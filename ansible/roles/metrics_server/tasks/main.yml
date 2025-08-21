@@ -1,0 +1,47 @@
+---
+# - name: Wait for all nodes to be Ready
+#   command: kubectl get nodes --no-headers
+#   register: node_status
+#   until: node_status.stdout_lines | select("search", "Ready") | list | length == (groups['masters'] | length + groups['workers'] | length)
+#   retries: 20
+#   delay: 15
+#   tags: precheck
+
+# - name: Wait for all kube-system pods to be Running
+#   shell: kubectl get pods -n kube-system --no-headers | awk '{print $3}' | grep -v Running
+#   register: kube_system_pods
+#   until: kube_system_pods.stdout == ""
+#   retries: 20
+#   delay: 15
+#   tags: precheck
+
+# - name: Wait for etcd to be healthy
+#   shell: kubectl exec -n kube-system etcd-{{ inventory_hostname }} -- etcdctl endpoint health
+#   register: etcd_health
+#   until: '"healthy" in etcd_health.stdout'
+#   retries: 10
+#   delay: 10
+#   ignore_errors: yes
+#   tags: precheck
+
+- name: Deploy metrics-server
+  become_user: "{{ ansible_user }}"
+  command: >
+    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+  environment:
+    KUBECONFIG: /home/{{ ansible_user }}/.kube/config
+
+- name: Patch metrics-server deployment to allow insecure TLS
+  become_user: "{{ ansible_user }}"
+  shell: |
+    kubectl patch deployment metrics-server -n kube-system \
+      --type='json' \
+      -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+  environment:
+    KUBECONFIG: /home/{{ ansible_user }}/.kube/config
+
+- name: Wait for metrics-server to be ready
+  become_user: "{{ ansible_user }}"
+  shell: kubectl wait --namespace kube-system --for=condition=available deployment/metrics-server --timeout=120s
+  environment:
+    KUBECONFIG: /home/{{ ansible_user }}/.kube/config

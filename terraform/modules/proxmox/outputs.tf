@@ -1,5 +1,5 @@
 output "worker_count" {
-  value = var.k8s_worker_count
+  value = var.worker_count
 }
 
 output "workers_ips" {

@@ -15,10 +15,7 @@ rerun this command to reinitialize your working directory. If you forget, other
 commands will detect it and remind you to do so if necessary.[0m
 Done with Terraform init.
 Step 1: Terraform apply
-running terraform apply
-Done with Terraform apply.
-Waiting 60 seconds for VMs to finish booting...
-Step 2: Run Ansible k8s-setup.yml
-Done with k8s-setup.yml.
-Step 3: Run Ansible helm_monitoring.yml
-Done with helm_monitoring.yml.
+[0m[1mvar.k8s_master_count[0m
+  Number of Kubernetes master nodes
+
+  [1mEnter a value:[0m [0m

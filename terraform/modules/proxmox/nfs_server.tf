@@ -1,29 +1,29 @@
 resource "proxmox_vm_qemu" "nfs_server" {
-  vmid        = var.vm_resources["nfs_server"].vmid
+  vmid        = var.nfs_server_vmid
   name        = "nfs-server"
-  target_node = var.node
-  clone       = var.vm_template
+  target_node = var.proxmox_node
+  clone       = var.base_template
   full_clone  = true
 
   cpu {
-    cores   = var.vm_resources["nfs_server"].cpu
+    cores   = 1
     sockets = 1
   }
 
-  memory  = var.vm_resources["nfs_server"].memory
+  memory  = 1024
   agent   = 1
   os_type = "cloud-init"
 
   disk {
     slot    = "scsi0"
     type    = "disk"
-    storage = var.storage
-    size    = var.vm_resources["nfs_server"].disk
+    storage = var.storage_pool
+    size    = "32G"
   }
 
   disk {
     type    = "cloudinit"
-    storage = var.storage
+    storage = var.storage_pool
     slot    = "ide2"
   }
 
@@ -35,8 +35,8 @@ resource "proxmox_vm_qemu" "nfs_server" {
 
   scsihw     = "virtio-scsi-single"
   boot       = "c"
-  ciuser     = "ubuntu"
-  cipassword = "ubuntu123"
+  ciuser     = var.cloud_init_user
+  cipassword = var.cloud_init_password
   sshkeys    = file("~/.ssh/id_rsa.pub")
   ipconfig0  = "ip=${var.vm_ips["nfs_server"]}/24,gw=192.168.1.1"
 

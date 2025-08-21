@@ -1,0 +1,29 @@
+{
+  "zone_name": "test",
+  "provider_type": "proxmox",
+  "proxmox_node": "pve",
+  "api_url": "https://192.168.1.17:8006/api2/json",
+  "api_user": "root@pam",
+  "api_password": "sifast",
+  "base_template": "temp-fix-image",
+  "storage_pool": "local-lvm",
+  "internal_bridge": "brmo",
+  "external_bridge": "vmbrm1",
+  "gateway": "192.168.1.1/24",
+  "nat_network_cidr": "string",
+  "master_count": 1,
+  "worker_count": 1,
+  "master_cpu": 2,
+  "master_ram": 2048,
+  "master_disk": 20,
+  "worker_cpu": 1,
+  "worker_ram": 2048,
+  "worker_disk": 30,
+  "ci_user": "ubuntu",
+  "ci_password": "ubuntu123",
+  "vm_ips": {
+    "k8s-master-1": "192.168.1.173",
+    "k8s-worker-1": "192.168.1.174",
+    "nfs_server": "192.168.1.172"
+  }
+}

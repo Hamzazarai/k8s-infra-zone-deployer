@@ -14,7 +14,7 @@ proxmox_node = "pve"
 base_template = "temp-fix-image"
 storage_pool = "local-lvm"
 internal_bridge = "brmo"
-external_bridge = "brm1"
+external_bridge = "vmbrm1"
 
 master_count = 1
 master_cpu = 2

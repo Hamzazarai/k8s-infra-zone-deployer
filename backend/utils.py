@@ -77,6 +77,7 @@ def write_hosts_ini(config: VMConfig):
     user = config.ci_user
     password = config.ci_password
 
+    # Cluster groups
     lines.append("[kube_cluster:children]")
     lines.append("masters")
     lines.append("workers")
@@ -90,37 +91,37 @@ def write_hosts_ini(config: VMConfig):
         lines.append("monitoring")
     lines.append("")
 
-    if config.enable_haproxy and "haproxy" in config.vm_ips:
+    # NFS
+    if "nfs_server" in config.vm_ips:
+        lines.append("[nfs]")
+        lines.append(f"nfs-server ansible_host={config.vm_ips['nfs_server']} "
+                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}\n")
+
+    # HAProxy
+    if "haproxy" in config.vm_ips:
         lines.append("[haproxy]")
         lines.append(f"haproxy ansible_host={config.vm_ips['haproxy']} "
                      f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}\n")
 
-    if config.enable_nfs and "nfs" in config.vm_ips:
-        lines.append("[nfs]")
-        lines.append(f"nfs ansible_host={config.vm_ips['nfs']} "
-                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}\n")
-
-    if config.enable_harbor and "harbor" in config.vm_ips:
-        lines.append("[harbor]")
-        lines.append(f"harbor ansible_host={config.vm_ips['harbor']} "
-                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}\n")
-
+    # Monitoring
     if "monitoring" in config.vm_ips:
         lines.append("[monitoring]")
         lines.append(f"monitoring ansible_host={config.vm_ips['monitoring']} "
                      f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}\n")
 
+    # Masters
     lines.append("[masters]")
     for i in range(1, config.master_count + 1):
-        name = f"master-{i}"
+        name = f"k8s-master-{i}"
         if name in config.vm_ips:
             lines.append(f"{name} ansible_host={config.vm_ips[name]} "
                          f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}")
     lines.append("")
 
+    # Workers
     lines.append("[workers]")
     for i in range(1, config.worker_count + 1):
-        name = f"worker-{i}"
+        name = f"k8s-worker-{i}"
         if name in config.vm_ips:
             lines.append(f"{name} ansible_host={config.vm_ips[name]} "
                          f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}")

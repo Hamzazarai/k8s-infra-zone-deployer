@@ -37,12 +37,12 @@ def write_tfvars(config: VMConfig):
     content.append(f'master_count = {config.master_count}')
     content.append(f'master_cpu = {config.master_cpu}')
     content.append(f'master_ram = {config.master_ram}')
-    content.append(f'master_disk = {config.master_disk}\n')
+    content.append(f'master_disk = "{config.master_disk}"\n')
 
     content.append(f'worker_count = {config.worker_count}')
     content.append(f'worker_cpu = {config.worker_cpu}')
     content.append(f'worker_ram = {config.worker_ram}')
-    content.append(f'worker_disk = {config.worker_disk}\n')
+    content.append(f'worker_disk = "{config.worker_disk}"\n')
 
     # Credentials cloud-init
     content.append(f'cloud_init_user = "{config.ci_user}"')

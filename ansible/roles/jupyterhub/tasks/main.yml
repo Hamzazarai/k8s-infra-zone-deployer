@@ -7,6 +7,29 @@
 - name: Create namespace for JupyterHub
   command: kubectl create namespace jhub --dry-run=client -o yaml | kubectl apply -f -
 
+
+- name: Apply PersistentVolume for NFS
+  copy:
+    src: templates/pv-nfs.yaml
+    dest: /tmp/pv-nfs.yaml
+  register: pv_file
+
+- name: Create PersistentVolume
+  command: kubectl apply -f /tmp/pv-nfs.yaml
+  when: pv_file is succeeded
+
+
+- name: Apply PersistentVolumeClaim for NFS
+  copy:
+    src: templates/pvc-nfs.yaml
+    dest: /tmp/pvc-nfs.yaml
+  register: pvc_file
+
+- name: Create PersistentVolumeClaim
+  command: kubectl apply -f /tmp/pvc-nfs.yaml
+  when: pvc_file is succeeded
+
+
 - name: Install JupyterHub with Helm
   command: >
     helm upgrade --install jhub jupyterhub/jupyterhub

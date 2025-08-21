@@ -35,14 +35,14 @@ class VMConfig(BaseModel):
     haproxy_ip: Optional[str] = "10.0.0.88"
     haproxy_cpu: Optional[int] = 4
     haproxy_ram: Optional[int] = 8
-    haproxy_disk: Optional[int] = 50
+    haproxy_disk: Optional[str] = 50
     enable_nfs: bool = True
     nfs_ip: Optional[str] = "10.0.0.89"
     nfs_cpu: Optional[int] = 2
     nfs_ram: Optional[int] = 8
-    nfs_disk: Optional[int] = 100
+    nfs_disk: Optional[str] = 100
     enable_harbor: bool = True
     harbor_ip: Optional[str] = "10.0.0.77"
     harbor_cpu: Optional[int] = 2
     harbor_ram: Optional[int] = 8
-    harbor_disk: Optional[int] = 50
+    harbor_disk: Optional[str] = 50

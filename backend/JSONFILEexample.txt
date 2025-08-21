@@ -13,11 +13,11 @@
   "master_count": 2,
   "worker_count": 2,
   "master_cpu": 4,
-  "master_ram": 8,
-  "master_disk": 50,
+  "master_ram": 8192, // 8 GB * 1024 = 8192 MB
+  "master_disk": "50G", // 50 GB with G suffix
   "worker_cpu": 8,
-  "worker_ram": 16,
-  "worker_disk": 100,
+  "worker_ram": 16384, // 16 GB * 1024 = 16384 MB
+  "worker_disk": "100G", // 100 GB with G suffix
   "ci_user": "ubuntu",
   "ci_password": "ubuntu123",
   "vm_ips": {
@@ -31,17 +31,17 @@
   },
   "enable_haproxy": true,
   "haproxy_ip": "10.0.0.88",
-  "haproxy_cpu": 6,
-  "haproxy_ram": 12,
-  "haproxy_disk": 60,
+  "haproxy_cpu": 4,
+  "haproxy_ram": 8192, // 8 GB * 1024 = 8192 MB
+  "haproxy_disk": "50G", // 50 GB with G suffix
   "enable_nfs": true,
   "nfs_ip": "10.0.0.89",
-  "nfs_cpu": 4,
-  "nfs_ram": 16,
-  "nfs_disk": 200,
+  "nfs_cpu": 2,
+  "nfs_ram": 8192, // 8 GB * 1024 = 8192 MB
+  "nfs_disk": "100G", // 100 GB with G suffix
   "enable_harbor": true,
   "harbor_ip": "10.0.0.77",
-  "harbor_cpu": 3,
-  "harbor_ram": 10,
-  "harbor_disk": 80
+  "harbor_cpu": 2,
+  "harbor_ram": 8192, // 8 GB * 1024 = 8192 MB
+  "harbor_disk": "50G" // 50 GB with G suffix
 }

@@ -2,7 +2,7 @@ from pathlib import Path
 import subprocess
 from models import VMConfig
 
-VM_CONFIG_PATH = Path("../terraform/vm_config.auto.tfvars")
+VM_CONFIG_PATH = Path("../terraform/modules/proxmox/vm_config.auto.tfvars")
 HOSTS_INI_PATH = Path("../ansible/inventory/hosts.ini")
 
 def write_tfvars(config: VMConfig):
@@ -148,7 +148,7 @@ def run_deployment(config: VMConfig):
             f.write("Deploying Harbor Registry...\n")
         f.write("Running Terraform and Ansible deployment...\n")
         process = subprocess.Popen(
-            ["bash", "../scripts/run_deploy.sh"],
+            ["bash", "-c", "ANSIBLE_HOST_KEY_CHECKING=False ../scripts/run_deploy.sh"],
             stdout=f, stderr=subprocess.STDOUT
         )
         process.wait()

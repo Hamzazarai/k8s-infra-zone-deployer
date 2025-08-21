@@ -1,0 +1,1 @@
+{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"haproxy","Source":"./ha_proxy.tf","Dir":"ha_proxy.tf"},{"Key":"k8s_masters","Source":"./k8s_masters.tf","Dir":"k8s_masters.tf"},{"Key":"k8s_workers","Source":"./k8s_workers.tf","Dir":"k8s_workers.tf"},{"Key":"nfs","Source":"./nfs_server.tf","Dir":"nfs_server.tf"}]}

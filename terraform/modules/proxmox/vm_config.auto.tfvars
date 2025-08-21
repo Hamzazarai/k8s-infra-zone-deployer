@@ -7,7 +7,6 @@ provider_credentials = {
   password = "sifast"
 }
 
-nat_network_cidr = "string"
 gateway = "192.168.1.1/24"
 
 proxmox_node = "pve"
@@ -26,11 +25,31 @@ worker_cpu = 1
 worker_ram = 2048
 worker_disk = "30G"
 
+haproxy_cpu = 4
+haproxy_ram = 8192
+haproxy_disk = "50G"
+
+nfs_cpu = 2
+nfs_ram = 8192
+nfs_disk = "100G"
+
+harbor_cpu = 2
+harbor_ram = 8192
+harbor_disk = "50G"
+
 cloud_init_user = "ubuntu"
 cloud_init_password = "ubuntu123"
 
+enable_haproxy = true
+enable_nfs = true
+enable_harbor = true
+
 vm_ips = {
-  k8s-master-1 = "192.168.1.173"
-  k8s-worker-1 = "192.168.1.174"
-  nfs_server = "192.168.1.172"
+  "master-1" = "10.0.0.10"
+  "master-2" = "10.0.0.11"
+  "worker-1" = "10.0.0.20"
+  "worker-2" = "10.0.0.21"
+  "haproxy" = "10.0.0.88"
+  "nfs" = "10.0.0.89"
+  "harbor" = "10.0.0.77"
 }

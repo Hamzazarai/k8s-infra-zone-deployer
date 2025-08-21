@@ -39,4 +39,8 @@ resource "proxmox_vm_qemu" "nfs_server" {
   cipassword = "ubuntu123"
   sshkeys    = file("~/.ssh/id_rsa.pub")
   ipconfig0  = "ip=${var.vm_ips["nfs_server"]}/24,gw=192.168.1.1"
+
+  lifecycle {
+    ignore_changes = all
+  }
 }

@@ -44,4 +44,8 @@ resource "proxmox_vm_qemu" "k8s_workers" {
   cipassword = "ubuntu123"
   sshkeys    = file("~/.ssh/id_rsa.pub")
   ipconfig0  = "ip=${var.vm_ips[each.key]}/24,gw=192.168.1.1"
+  
+  lifecycle {
+    ignore_changes = all
+  }
 }

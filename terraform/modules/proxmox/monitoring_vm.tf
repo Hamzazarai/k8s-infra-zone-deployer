@@ -39,4 +39,8 @@
 #   cipassword = "ubuntu123"
 #   sshkeys    = file("~/.ssh/id_rsa.pub")
 #   ipconfig0  = "ip=192.168.1.176/24,gw=192.168.1.1"
+# 
+#   lifecycle {
+#     ignore_changes = all
+#   }
 # }

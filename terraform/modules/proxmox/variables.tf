@@ -39,6 +39,7 @@ variable "internal_bridge" {
 variable "external_bridge" {
   description = "External bridge for internet access"
   type        = string
+  default     = "vmbr1"
 }
 
 # Proxmox specific

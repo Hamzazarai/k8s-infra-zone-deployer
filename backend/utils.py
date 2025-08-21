@@ -139,7 +139,7 @@ def run_deployment(config: VMConfig):
     log_file = Path("./logs/deploy.log")
     log_file.parent.mkdir(exist_ok=True)
 
-    with open(log_file, "a") as f:
+    with open(log_file, "w") as f:
         # f.write("Starting deployment...\n")
         # if config.enable_haproxy:
         #     f.write("Deploying HAProxy Load Balancer...\n")

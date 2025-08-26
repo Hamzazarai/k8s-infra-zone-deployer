@@ -34,6 +34,7 @@ variable "gateway" {
 variable "internal_bridge" {
   description = "Internal bridge for VM communication"
   type        = string
+  default     = "vmbr0"
 }
 
 variable "external_bridge" {
@@ -130,6 +131,15 @@ variable "worker_vmid" {
 variable "nfs_server_vmid" {
   default = 200
 }
+
+variable "haproxy_vmid" {
+  default = 100
+}
+
+variable "harbor_vmid" {
+  default = 500
+}
+
 
 # HAProxy resources
 variable "haproxy_cpu" {

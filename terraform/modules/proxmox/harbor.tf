@@ -1,17 +1,17 @@
-resource "proxmox_vm_qemu" "haproxy" {
-  count       = var.enable_haproxy ? 1 : 0
-  vmid        = var.haproxy_vmid
-  name        = "haproxy"
+resource "proxmox_vm_qemu" "harbor" {
+  count       = var.enable_harbor ? 1 : 0
+  vmid        = var.harbor_vmid
+  name        = "harbor"
   target_node = var.proxmox_node
   clone       = var.base_template
   full_clone  = true
 
   cpu {
-    cores   = var.haproxy_cpu
+    cores   = var.harbor_cpu
     sockets = 1
   }
 
-  memory  = var.haproxy_ram
+  memory  = var.harbor_ram
   agent   = 1
   os_type = "cloud-init"
 
@@ -19,7 +19,7 @@ resource "proxmox_vm_qemu" "haproxy" {
     slot    = "scsi0"
     type    = "disk"
     storage = var.storage_pool
-    size    = var.haproxy_disk
+    size    = var.harbor_disk
   }
 
   disk {
@@ -39,7 +39,8 @@ resource "proxmox_vm_qemu" "haproxy" {
   ciuser     = var.cloud_init_user
   cipassword = var.cloud_init_password
   sshkeys    = file("~/.ssh/id_rsa.pub")
-  ipconfig0  = "ip=${var.vm_ips["haproxy"]}/24,gw=192.168.1.1"
+  ipconfig0  = "ip=${var.vm_ips["harbor"]}/24,gw=192.168.1.1"
+
   lifecycle {
     ignore_changes = all
   }

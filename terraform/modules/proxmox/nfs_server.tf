@@ -1,4 +1,5 @@
 resource "proxmox_vm_qemu" "nfs_server" {
+  count       = var.enable_nfs ? 1 : 0
   vmid        = var.nfs_server_vmid
   name        = "nfs-server"
   target_node = var.proxmox_node
@@ -6,11 +7,11 @@ resource "proxmox_vm_qemu" "nfs_server" {
   full_clone  = true
 
   cpu {
-    cores   = 1
+    cores   = var.nfs_cpu
     sockets = 1
   }
 
-  memory  = 1024
+  memory  = var.nfs_ram
   agent   = 1
   os_type = "cloud-init"
 
@@ -18,7 +19,7 @@ resource "proxmox_vm_qemu" "nfs_server" {
     slot    = "scsi0"
     type    = "disk"
     storage = var.storage_pool
-    size    = "32G"
+    size    = var.nfs_disk
   }
 
   disk {

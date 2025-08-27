@@ -29,6 +29,7 @@ variable "nat_network_cidr" {
 variable "gateway" {
   description = "Gateway IP address for the cluster"
   type        = string
+  default = "10.0.0.1"
 }
 
 variable "internal_bridge" {

@@ -52,9 +52,23 @@
     state: started
     enabled: yes
 
-- name: Initialize Kubernetes master
-  shell: kubeadm init --pod-network-cidr=10.244.0.0/16 --cri-socket=unix:///var/run/crio/crio.sock
+- name: Initialize Kubernetes master via HAProxy
+  shell: |
+    kubeadm init \
+      --control-plane-endpoint "{{ hostvars[groups['haproxy'][0]]['ansible_host'] }}:6443" \
+      --pod-network-cidr=10.244.0.0/16 \
+      --cri-socket=unix:///var/run/crio/crio.sock
   register: kubeadm_init
+  when: groups['haproxy'] | length > 0
+
+- name: Initialize Kubernetes master (no HAProxy)
+  shell: |
+    kubeadm init \
+      --pod-network-cidr=10.244.0.0/16 \
+      --cri-socket=unix:///var/run/crio/crio.sock
+  register: kubeadm_init
+  when: groups['haproxy'] | length == 0
+
 
 - name: Create .kube directory
   file:

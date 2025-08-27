@@ -1,39 +1,33 @@
----
-- name: Install and configure HAProxy for Kubernetes
-  hosts: haproxy
-  become: true
-  tasks:
+- name: Install haproxy
+  apt:
+    name: haproxy
+    state: present
+    update_cache: true
 
-    - name: Install haproxy
-      apt:
-        name: haproxy
-        state: present
-        update_cache: true
+- name: Configure haproxy for Kubernetes API
+  copy:
+    dest: /etc/haproxy/haproxy.cfg
+    content: |
+      global
+          daemon
+          maxconn 256
 
-    - name: Configure haproxy for Kubernetes API
-      copy:
-        dest: /etc/haproxy/haproxy.cfg
-        content: |
-          global
-              daemon
-              maxconn 256
+      defaults
+          mode tcp
+          timeout connect 5s
+          timeout client  1m
+          timeout server  1m
 
-          defaults
-              mode tcp
-              timeout connect 5s
-              timeout client  1m
-              timeout server  1m
+      frontend k8s-api
+          bind *:6443
+          default_backend k8s-api
 
-          frontend k8s-api
-              bind *:6443
-              default_backend k8s-api
+      backend k8s-api
+      {% for host in groups['masters'] %}
+          server master{{ loop.index }} {{ hostvars[host]['ansible_host'] }}:6443 check
+      {% endfor %}
 
-          backend k8s-api
-          {% for host in groups['masters'] %}
-              server master{{ loop.index }} {{ hostvars[host]['ansible_host'] }}:6443 check
-          {% endfor %}
-
-    - name: Restart haproxy
-      service:
-        name: haproxy
-        state: restarted
+- name: Restart haproxy
+  service:
+    name: haproxy
+    state: restarted

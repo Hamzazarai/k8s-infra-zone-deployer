@@ -1,0 +1,7 @@
+harbor_version: "v2.10.0"
+harbor_dir: "/opt/harbor"
+harbor_hostname: "{{ inventory_hostname }}"
+harbor_host: "{{ ansible_host }}"
+harbor_admin_password: "Harbor12345"
+harbor_installer_url: "https://github.com/goharbor/harbor/releases/download/{{ harbor_version }}/harbor-online-installer-{{ harbor_version }}.tgz"
+harbor_installer_tgz: "{{ harbor_dir }}/harbor-installer.tgz"

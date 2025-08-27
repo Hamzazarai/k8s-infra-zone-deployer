@@ -33,13 +33,21 @@ resource "proxmox_vm_qemu" "harbor" {
     model  = "virtio"
     bridge = "vmbr0"
   }
+  
+  network {
+    id     = 1
+    model  = "virtio"
+    bridge = "vmbr1"
+  }
 
   scsihw     = "virtio-scsi-single"
   boot       = "c"
   ciuser     = var.cloud_init_user
   cipassword = var.cloud_init_password
   sshkeys    = file("~/.ssh/id_rsa.pub")
-  ipconfig0  = "ip=${var.vm_ips["harbor"]}/24,gw=192.168.1.1"
+
+  ipconfig0 = "ip=dhcp"
+  ipconfig1  = "ip=${var.vm_ips["harbor"]}/24,gw=${var.gateway}"
 
   lifecycle {
     ignore_changes = all

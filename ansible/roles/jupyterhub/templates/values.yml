@@ -1,0 +1,83 @@
+proxy:
+  secretToken: "494abb102a8cd51756c64625b74c4e1c0c8f6918e730a1a913dbe5de521c1c94"
+  service:
+    type: NodePort
+    nodePorts:
+      http: 32080
+      https: 32443
+
+singleuser:
+  cpu:
+    limit: 1
+    guarantee: 0.5
+  memory:
+    limit: 2G
+    guarantee: 1G
+  storage:
+    type: "static"
+    static:
+      pvcName: "nfs-share-pvc"
+      subPath: 'home/{username}'
+  image:
+    name: jupyter/minimal-notebook
+    tag: latest
+  profileList:
+    - display_name: "Python Minimal"
+      description: "Environnement de base avec Python uniquement."
+      default: true
+      kubespawner_override:
+        image: jupyter/minimal-notebook:latest
+        cpu_limit: 1
+        cpu_guarantee: 0.5
+        mem_limit: 1G
+        mem_guarantee: 512Mi
+
+    - display_name: "Data Science"
+      description: "Python, R, Julia avec bibliothèques scientifiques (NumPy, Pandas, Scikit-learn)."
+      kubespawner_override:
+        image: jupyter/datascience-notebook:latest
+        cpu_limit: 2
+        cpu_guarantee: 1
+        mem_limit: 2G
+        mem_guarantee: 1G
+
+    - display_name: "TensorFlow"
+      description: "Notebook avec TensorFlow pour deep learning."
+      kubespawner_override:
+        image: tensorflow/tensorflow:latest-jupyter
+        cpu_limit: 2
+        cpu_guarantee: 1
+        mem_limit: 3G
+        mem_guarantee: 1.5G
+
+    - display_name: "PyTorch"
+      description: "Notebook avec PyTorch et outils de vision/IA."
+      kubespawner_override:
+        image: pytorch/pytorch:latest
+        cpu_limit: 2
+        cpu_guarantee: 1
+        mem_limit: 3G
+        mem_guarantee: 1.5G
+
+    - display_name: "Big Data & Spark"
+      description: "Image Spark pour traitement distribué et analyse big data."
+      kubespawner_override:
+        image: jupyter/all-spark-notebook:latest
+        cpu_limit: 3
+        cpu_guarantee: 2
+        mem_limit: 4G
+        mem_guarantee: 2G
+
+hub:
+  config:
+    JupyterHub:
+      authenticator_class: nativeauthenticator.NativeAuthenticator
+      admin_users:
+        - root
+    NativeAuthenticator:
+      open_signup: true
+      minimum_password_length: 6
+      allow_self_approval: true
+
+imagePullSecrets:
+  - name: jupyterhub2

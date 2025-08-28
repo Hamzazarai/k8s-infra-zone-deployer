@@ -34,5 +34,5 @@
   hosts: masters[0]   # run only on the first master
   roles:
     - jupyterhub
-  when: groups['masters'] | length > 0
+  when: (groups['masters'] | length > 0) and (groups['nfs'] | length > 0)
 

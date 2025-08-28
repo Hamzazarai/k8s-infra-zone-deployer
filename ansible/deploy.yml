@@ -24,7 +24,7 @@
   hosts: harbor
   roles:
     - harbor
-  when: groups['monitoring'] | length > 0
+  when: groups['harbor'] | length > 0
 
 - name: Deploy Monitoring (Prometheus & Grafana)
   import_playbook: helm_monitoring.yml

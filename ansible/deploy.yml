@@ -29,3 +29,10 @@
 - name: Deploy Monitoring (Prometheus & Grafana)
   import_playbook: helm_monitoring.yml
   when: groups['masters'] | length > 0
+
+- name: Deploy JupyterHub
+  hosts: masters[0]   # run only on the first master
+  roles:
+    - jupyterhub
+  when: groups['masters'] | length > 0
+

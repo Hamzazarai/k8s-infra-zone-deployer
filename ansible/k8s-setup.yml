@@ -5,13 +5,18 @@
   roles:
     - k8s_common
 
-- name: Initialize master
-  hosts: masters
+- name: Initialize first master
+  hosts: master_init
   become: true
   roles:
     - k8s_master
-    # - k8s_dashboard
-  
+
+- name: Join other masters
+  hosts: master_join
+  become: true
+  roles:
+    - k8s_master_join
+
 - name: Join worker nodes
   hosts: workers
   become: true

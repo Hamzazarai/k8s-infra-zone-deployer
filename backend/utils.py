@@ -105,12 +105,29 @@ def write_hosts_ini(config: VMConfig):
         lines.append("")
 
     # Masters
+    masters = [(key, ip) for key, ip in config.vm_ips.items() if key.startswith("master-")]
+    masters.sort(key=lambda x: int(x[0].split("-")[1]))  # ensure master-1, master-2 order
+
     lines.append("[masters]")
-    for key, ip in config.vm_ips.items():
-        if key.startswith("master-"):
-            lines.append(f"{key} ansible_host={ip} "
-                         f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}")
+    for key, ip in masters:
+        lines.append(f"{key} ansible_host={ip} "
+                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}")
     lines.append("")
+
+    # Split master_init and master_join
+    if masters:
+        lines.append("[master_init]")
+        key, ip = masters[0]  # first master
+        lines.append(f"{key} ansible_host={ip} "
+                     f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}")
+        lines.append("")
+
+        if len(masters) > 1:
+            lines.append("[master_join]")
+            for key, ip in masters[1:]:
+                lines.append(f"{key} ansible_host={ip} "
+                             f"ansible_user={user} ansible_ssh_pass={password} ansible_become_pass={password}")
+            lines.append("")
 
     # Workers
     lines.append("[workers]")
@@ -122,6 +139,7 @@ def write_hosts_ini(config: VMConfig):
     # Write to file
     HOSTS_INI_PATH.write_text("\n".join(lines))
     return str(HOSTS_INI_PATH)
+
 
 
 

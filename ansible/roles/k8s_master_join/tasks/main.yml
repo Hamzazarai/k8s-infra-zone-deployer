@@ -1,0 +1,27 @@
+- name: Reset any previous kubeadm state
+  shell: kubeadm reset -f
+  ignore_errors: yes
+
+- name: Fetch control-plane join command from master-1
+  slurp:
+    src: /tmp/kubeadm_join_cmd_control_plane.sh
+  delegate_to: "{{ groups['master_init'][0] }}"
+  register: join_cmd_encoded
+  retries: 5
+  delay: 3
+  until: join_cmd_encoded is success
+
+- name: Decode and save join command
+  copy:
+    content: "{{ join_cmd_encoded.content | b64decode }}"
+    dest: /tmp/kubeadm_join_cmd.sh
+    mode: '0755'
+
+- name: Run join command for control-plane
+  shell: bash /tmp/kubeadm_join_cmd.sh
+  args:
+    executable: /bin/bash
+  register: join_result
+  retries: 3
+  delay: 10
+  until: join_result.rc == 0

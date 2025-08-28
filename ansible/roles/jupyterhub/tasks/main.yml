@@ -1,0 +1,40 @@
+- name: Ensure Helm is installed
+  shell: |
+    if ! command -v helm &> /dev/null; then
+      curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    fi
+  args:
+    executable: /bin/bash
+
+- name: Add JupyterHub Helm repo
+  shell: |
+    helm repo add jupyterhub https://jupyterhub.github.io/helm-chart/
+    helm repo update
+
+- name: Create jupyterhub namespace
+  shell: kubectl create namespace jupyterhub --dry-run=client -o yaml | kubectl apply -f -
+
+- name: Copy JupyterHub values.yaml
+  copy:
+    dest: /tmp/jupyterhub-values.yaml
+    content: |
+      proxy:
+        service:
+          type: LoadBalancer
+      hub:
+        config:
+          Authenticator:
+            admin_users:
+              - admin
+          DummyAuthenticator:
+            enabled: true
+
+- name: Deploy JupyterHub via Helm
+  shell: |
+    helm upgrade --install jhub jupyterhub/jupyterhub \
+      --namespace jupyterhub \
+      --create-namespace \
+      --version=3.3.7 \
+      --values /tmp/jupyterhub-values.yaml
+  args:
+    executable: /bin/bash

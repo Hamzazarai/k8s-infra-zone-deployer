@@ -24,7 +24,7 @@
     - k8s_worker
 
 - name: Deploy metrics-server
-  hosts: masters
+  hosts: master_init
   become: true
   roles:
     - metrics_server

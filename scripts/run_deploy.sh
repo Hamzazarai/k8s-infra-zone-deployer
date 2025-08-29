@@ -16,5 +16,5 @@ sleep 60
 
 echo "Step 2: Run Ansible deploy.yml"
 cd ../../../ansible
-ansible-playbook -i inventory/hosts.ini deploy.yml
+ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory/hosts.ini deploy.yml
 echo "Done with Ansible deploy.yml."

@@ -49,8 +49,6 @@ resource "proxmox_vm_qemu" "k8s_masters" {
   ciuser     = var.cloud_init_user
   cipassword = var.cloud_init_password
   sshkeys    = file("~/.ssh/id_rsa.pub")
-
-  ipconfig1 = "ip=10.0.0.1${tonumber(regex("[0-9]+$", each.key))}/24,gw=10.0.0.1"
   ipconfig0  = "ip=${var.vm_ips[each.key]}/24,gw=${var.gateway}"
   
   lifecycle {

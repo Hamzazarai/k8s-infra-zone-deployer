@@ -45,8 +45,6 @@ resource "proxmox_vm_qemu" "nfs_server" {
   ciuser     = var.cloud_init_user
   cipassword = var.cloud_init_password
   sshkeys    = file("~/.ssh/id_rsa.pub")
-
-  ipconfig1 = "ip=10.0.0.89/24,gw=10.0.0.1"
   ipconfig0  = "ip=${var.vm_ips["nfs"]}/24,gw=${var.gateway}"
 
   lifecycle {

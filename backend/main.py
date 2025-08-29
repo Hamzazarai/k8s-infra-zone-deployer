@@ -42,13 +42,13 @@ def load_vm_state():
 async def deploy(config: VMConfig):
     try:
         tfvars_path, hosts_ini_path = generate_config_files(config)
-        log_path = run_deployment(config)
+        # log_path = run_deployment(config)
         save_vm_state(config)
         return {
             "status": "success",
             "tfvars_file": tfvars_path,
             "hosts_ini_file": hosts_ini_path,
-            "log_file": log_path
+            # "log_file": log_path
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Deployment failed: {str(e)}")

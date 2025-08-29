@@ -45,8 +45,6 @@ resource "proxmox_vm_qemu" "haproxy" {
   ciuser     = var.cloud_init_user
   cipassword = var.cloud_init_password
   sshkeys    = file("~/.ssh/id_rsa.pub")
-
-  ipconfig1 = "ip=10.0.0.88/24,gw=10.0.0.1"
   ipconfig0  = "ip=${var.vm_ips["haproxy"]}/24,gw=${var.gateway}"
 
   lifecycle {

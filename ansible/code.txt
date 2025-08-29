@@ -4,8 +4,8 @@ This digest is designed to be easily parsed by Large Language Models.
 --- SUMMARY ---
 Repository: ansible
 Files Analyzed: 25
-Total Text Size: 23.6 KB
-Estimated Tokens (text only): ~7,519
+Total Text Size: 24.7 KB
+Estimated Tokens (text only): ~7,800
 
 --- DIRECTORY STRUCTURE ---
 ansible/
@@ -88,7 +88,7 @@ masters
 workers
 
 [nfs]
-nfs ansible_host=10.110.188.88 ansible_user=ubuntu ansible_ssh_pass=123 ansible_become_pass=123
+nfs ansible_host=10.110.188.80 ansible_user=ubuntu ansible_ssh_pass=123 ansible_become_pass=123
 
 [haproxy]
 haproxy ansible_host=10.110.188.99 ansible_user=ubuntu ansible_ssh_pass=123 ansible_become_pass=123
@@ -115,6 +115,13 @@ worker-2 ansible_host=10.110.188.22 ansible_user=ubuntu ansible_ssh_pass=123 ans
 ============================================================
 FILE: roles/haproxy/tasks/main.yml
 ============================================================
+- name: Update package cache and fix broken dependencies
+  become: yes
+  ansible.builtin.shell: |
+    apt update -y
+    apt --fix-broken install -y
+    apt upgrade -y
+
 - name: Install haproxy
   apt:
     name: haproxy
@@ -206,6 +213,13 @@ enable_chartmuseum: true
 ============================================================
 FILE: roles/harbor/tasks/main.yml
 ============================================================
+- name: Update package cache and fix broken dependencies
+  become: yes
+  ansible.builtin.shell: |
+    apt update -y
+    apt --fix-broken install -y
+    apt upgrade -y
+    
 - name: Install Docker and Docker Compose
   apt:
     name: [docker.io, docker-compose]
@@ -505,6 +519,13 @@ FILE: roles/k8s_common/tasks/install_kubernetes.yml
 ============================================================
 FILE: roles/k8s_common/tasks/main.yml
 ============================================================
+- name: Update package cache and fix broken dependencies
+  become: yes
+  ansible.builtin.shell: |
+    apt update -y
+    apt --fix-broken install -y
+    apt upgrade -y
+
 - name: Ensure systemd-resolved config directory exists
   file:
     path: /etc/systemd/resolved.conf.d
@@ -986,6 +1007,13 @@ FILE: roles/monitoring/tasks/main.yml
 ============================================================
 FILE: roles/nfs/tasks/main.yml
 ============================================================
+- name: Update package cache and fix broken dependencies
+  become: yes
+  ansible.builtin.shell: |
+    apt update -y
+    apt --fix-broken install -y
+    apt upgrade -y
+    
 - name: Install NFS server
   apt:
     name: nfs-kernel-server
@@ -1025,44 +1053,56 @@ host_key_checking = False
 ============================================================
 FILE: deploy.yml
 ============================================================
-- name: Sleep before deployment
-  hosts: localhost
-  tasks:
-    - pause:
-        seconds: 60
+# - name: Sleep before deployment
+#   hosts: localhost
+#   tasks:
+#     - pause:
+#         seconds: 60
 
-- name: Deploy HAProxy
-  hosts: haproxy
-  roles:
-    - haproxy
-  when: groups['haproxy'] | length > 0
+# - name: Deploy HAProxy
+#   hosts: haproxy
+#   become: true
+#   tasks:
+#     - name: Include HAProxy role if group exists
+#       include_role:
+#         name: haproxy
+#       when: groups['haproxy'] | length > 0
 
-- name: Setup Kubernetes Cluster
-  import_playbook: k8s-setup.yml
-  when: (groups['masters'] | length > 0) and (groups['workers'] | length > 0)
+# - name: Setup Kubernetes Cluster
+#   import_playbook: k8s-setup.yml
+#   when: (groups['masters'] | length > 0) and (groups['workers'] | length > 0)
 
 - name: Deploy NFS server
   hosts: nfs
-  roles:
-    - nfs
-  when: groups['nfs'] | length > 0
+  become: true
+  tasks:
+    - name: Include NFS role if group exists
+      include_role:
+        name: nfs
+      when: groups['nfs'] | length > 0
 
 - name: Deploy Harbor
   hosts: harbor
-  roles:
-    - harbor
-  when: groups['harbor'] | length > 0
+  become: true
+  tasks:
+    - name: Include Harbor role if group exists
+      include_role:
+        name: harbor
+      when: groups['harbor'] | length > 0
 
 - name: Deploy Monitoring (Prometheus & Grafana)
-  import_playbook: helm_monitoring.yml
+  import_playbook : helm_monitoring.yml
   when: groups['masters'] | length > 0
 
 - name: Deploy JupyterHub
-  hosts: masters[0]   # run only on the first master
-  roles:
-    - jupyterhub
-  when: (groups['masters'] | length > 0) and (groups['nfs'] | length > 0)
-
+  hosts: masters[0]
+  become: true
+  tasks:
+    - name: Run JupyterHub role on first master only
+      include_role:
+        name: jupyterhub
+      run_once: true
+      when: (groups['masters'] | length > 0) and (groups['nfs'] | length > 0)
 
 
 ============================================================

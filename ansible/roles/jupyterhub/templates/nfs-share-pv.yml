@@ -9,7 +9,7 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-    server: {{ nfs_server_ip }}
-    path: /export/jupyterhub
+    server: {{ hostvars['nfs']['ansible_host'] }}
+    path: /srv/nfs/kubedata
   storageClassName: nfs
 

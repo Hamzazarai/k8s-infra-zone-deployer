@@ -1,5 +1,5 @@
 - name: Deploy Prometheus & Grafana using Helm
-  hosts: masters
+  hosts: masters[0]
   become: true
   roles:
     - monitoring

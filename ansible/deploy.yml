@@ -17,27 +17,27 @@
 #   import_playbook: k8s-setup.yml
 #   when: (groups['masters'] | length > 0) and (groups['workers'] | length > 0)
 
-- name: Deploy NFS server
-  hosts: nfs
-  become: true
-  tasks:
-    - name: Include NFS role if group exists
-      include_role:
-        name: nfs
-      when: groups['nfs'] | length > 0
+# - name: Deploy NFS server
+#   hosts: nfs
+#   become: true
+#   tasks:
+#     - name: Include NFS role if group exists
+#       include_role:
+#         name: nfs
+#       when: groups['nfs'] | length > 0
 
-- name: Deploy Harbor
-  hosts: harbor
-  become: true
-  tasks:
-    - name: Include Harbor role if group exists
-      include_role:
-        name: harbor
-      when: groups['harbor'] | length > 0
+# - name: Deploy Harbor
+#   hosts: harbor
+#   become: true
+#   tasks:
+#     - name: Include Harbor role if group exists
+#       include_role:
+#         name: harbor
+#       when: groups['harbor'] | length > 0
 
-- name: Deploy Monitoring (Prometheus & Grafana)
-  import_playbook : helm_monitoring.yml
-  when: groups['masters'] | length > 0
+# - name: Deploy Monitoring (Prometheus & Grafana)
+#   import_playbook : helm_monitoring.yml
+#   when: groups['masters'] | length > 0
 
 - name: Deploy JupyterHub
   hosts: masters[0]

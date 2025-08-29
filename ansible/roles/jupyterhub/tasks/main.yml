@@ -4,35 +4,51 @@
 - name: Update Helm repos
   command: helm repo update
 
-- name: Create namespace for JupyterHub
-  command: kubectl create namespace jhub --dry-run=client -o yaml | kubectl apply -f -
+- name: Ensure JupyterHub namespace exists
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: jhub
+    state: present
+    kubeconfig: /etc/kubernetes/admin.conf
+
 
 
 - name: Apply PersistentVolume for NFS
-  copy:
-    src: templates/pv-nfs.yaml
+  template:
+    src: templates/nfs-share-pv.yml
     dest: /tmp/pv-nfs.yaml
   register: pv_file
 
 - name: Create PersistentVolume
-  command: kubectl apply -f /tmp/pv-nfs.yaml
+  command: kubectl apply -f /tmp/pv-nfs.yaml --kubeconfig /etc/kubernetes/admin.conf
   when: pv_file is succeeded
 
 
 - name: Apply PersistentVolumeClaim for NFS
-  copy:
-    src: templates/pvc-nfs.yaml
+  template:
+    src: templates/nfs-share-pvc.yml
     dest: /tmp/pvc-nfs.yaml
   register: pvc_file
 
 - name: Create PersistentVolumeClaim
-  command: kubectl apply -f /tmp/pvc-nfs.yaml
+  command: kubectl apply -f /tmp/pvc-nfs.yaml --kubeconfig /etc/kubernetes/admin.conf
   when: pvc_file is succeeded
 
+
+- name: Copy values.yml to master node
+  copy:
+    src: templates/values.yml
+    dest: /tmp/values.yml
+    mode: '0644'
 
 - name: Install JupyterHub with Helm
   command: >
     helm upgrade --install jhub jupyterhub/jupyterhub
     --namespace jhub
     --version=3.3.7
-    -f {{ role_path }}/templates/values.yml
+    -f /tmp/values.yml
+    --kubeconfig /etc/kubernetes/admin.conf
+  args:
+    chdir: /tmp
+

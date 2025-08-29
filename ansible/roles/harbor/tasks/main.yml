@@ -4,40 +4,70 @@
     apt update -y
     apt --fix-broken install -y
     apt upgrade -y
-    
+
 - name: Install Docker and Docker Compose
+  become: yes
   apt:
-    name: [docker.io, docker-compose]
+    name:
+      - docker.io
+      - docker-compose
     state: present
     update_cache: yes
 
 - name: Create Harbor directory
+  become: yes
   file:
     path: "{{ harbor_dir }}"
     state: directory
 
-- name: Download Harbor installer
+- name: Download Harbor installer (offline)
+  become: yes
   get_url:
     url: "{{ harbor_installer_url }}"
     dest: "{{ harbor_installer_tgz }}"
+    mode: '0644'
 
 - name: Extract Harbor installer
+  become: yes
   unarchive:
     src: "{{ harbor_installer_tgz }}"
     dest: "{{ harbor_dir }}"
     remote_src: yes
 
 - name: Template harbor.yml
+  become: yes
   template:
     src: harbor.yml.j2
     dest: "{{ harbor_dir }}/harbor/harbor.yml"
 
+- name: Ensure Harbor parent directory exists and is root-owned
+  become: yes
+  file:
+    path: "{{ harbor_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Ensure Harbor subdirectory is root-owned
+  become: yes
+  file:
+    path: "{{ harbor_dir }}/harbor"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
 - name: Run Harbor install.sh
-  ansible.builtin.shell: ./install.sh
+  become: yes
+  ansible.builtin.command: ./install.sh
   args:
     chdir: "{{ harbor_dir }}/harbor"
+    creates: "{{ harbor_dir }}/harbor/docker-compose.yml"
+
 
 - name: Configure Docker to trust insecure Harbor registry
+  become: yes
   copy:
     dest: /etc/docker/daemon.json
     content: |
@@ -45,7 +75,3 @@
         "insecure-registries": ["{{ harbor_host }}"]
       }
   notify: Restart Docker
-
-# - name: Restart Docker service 
-#   shell: systemctl restart docker
-#   become: true

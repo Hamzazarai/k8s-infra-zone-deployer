@@ -1,3 +1,10 @@
+- name: Update package cache and fix broken dependencies
+  become: yes
+  ansible.builtin.shell: |
+    apt update -y
+    apt --fix-broken install -y
+    apt upgrade -y
+
 - name: Ensure systemd-resolved config directory exists
   file:
     path: /etc/systemd/resolved.conf.d

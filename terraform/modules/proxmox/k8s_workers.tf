@@ -50,8 +50,8 @@ resource "proxmox_vm_qemu" "k8s_workers" {
   cipassword = var.cloud_init_password
   sshkeys    = file("~/.ssh/id_rsa.pub")
 
-  ipconfig0 = "ip=dhcp"
-  ipconfig1  = "ip=${var.vm_ips[each.key]}/24,gw=${var.gateway}"
+  ipconfig1 = "ip=10.0.0.2${tonumber(regex("[0-9]+$", each.key))}/24,gw=10.0.0.1"
+  ipconfig0  = "ip=${var.vm_ips[each.key]}/24,gw=${var.gateway}"
   
   lifecycle {
     ignore_changes = all

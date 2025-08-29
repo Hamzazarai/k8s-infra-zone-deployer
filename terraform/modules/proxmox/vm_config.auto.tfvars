@@ -2,25 +2,25 @@ zone_name = "test"
 provider_type = "proxmox"
 
 provider_credentials = {
-  url      = "https://192.168.1.17:8006/api2/json"
+  url      = "https://10.110.188.59:8006/api2/json"
   user     = "root@pam"
-  password = "sifast"
+  password = "root123"
 }
 
 gateway = "10.0.0.1"
 
-proxmox_node = "pve"
-base_template = "temp-fix-image"
+proxmox_node = "proxmox"
+base_template = "ubuntu-template"
 storage_pool = "local-lvm"
 internal_bridge = "vmbr0"
 external_bridge = "vmbr1"
 
-master_count = 3
+master_count = 1
 master_cpu = 4
 master_ram = 8192
 master_disk = "50G"
 
-worker_count = 2
+worker_count = 1
 worker_cpu = 8
 worker_ram = 16384
 worker_disk = "100G"
@@ -40,9 +40,10 @@ harbor_disk = "50G"
 cloud_init_user = "ubuntu"
 cloud_init_password = "ubuntu123"
 
-enable_haproxy = true
-enable_nfs = true
-enable_harbor = true
+enable_haproxy = false
+enable_nfs = false
+enable_harbor = false
+
 
 vm_ips = {
   "master-1" = "10.0.0.11"

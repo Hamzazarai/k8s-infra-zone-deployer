@@ -40,6 +40,7 @@ const AutoKube = () => {
     harbor_cpu: 2,
     harbor_ram: 8,
     harbor_disk: 50,
+    
   });
 
   const [isDeploying, setIsDeploying] = useState(false);
@@ -155,7 +156,8 @@ const AutoKube = () => {
         harbor_ip: formData.harbor_ip,
         harbor_cpu: formData.harbor_cpu,
         harbor_ram: formData.harbor_ram * 1024,  
-        harbor_disk: `${formData.harbor_disk}G`, 
+        harbor_disk: `${formData.harbor_disk}G`,
+        
       };
 
       setDeploymentLogs(prev => [...prev, '📡 Sending configuration to backend...']);
@@ -823,6 +825,45 @@ const AutoKube = () => {
                     </div>
                   </div>
                 </div>
+                {/* Services */}
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <Server className="w-5 h-5 text-red-400" />
+                    Services
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                      <div className="space-y-2">
+  {/* Bouton JupyterHub */}
+  <button
+    onClick={() => {
+      if (formData.deploy_jupyterhub) {
+        // Redirection vers la page JupyterHub sur worker1
+        window.open(`http://${formData.vm_ips["worker-1"]}:32080`, "_blank");
+      }
+    }}
+    disabled={!formData.deploy_jupyterhub || !formData.enable_nfs}
+    className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-200
+      ${formData.deploy_jupyterhub && formData.enable_nfs
+        ? "bg-red-500 hover:bg-red-600 text-white"
+        : "bg-gray-600 text-gray-300 cursor-not-allowed"}`}
+  >
+    Open JupyterHub
+  </button>
+
+  {/* Message si JupyterHub demandé sans NFS */}
+  {formData.deploy_jupyterhub && !formData.enable_nfs && (
+    <p className="text-sm text-red-400 mt-2">
+      NFS must be enabled in order to deploy JupyterHub.
+    </p>
+  )}
+</div>
+		</div>
+	</div>
+  </div>
+  </div>
+
 
                 {/* Deploy Button */}
                 <button

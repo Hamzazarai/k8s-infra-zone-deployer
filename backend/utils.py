@@ -170,3 +170,6 @@ def run_deployment(config: VMConfig):
         process.wait()
 
     return str(log_file)
+
+    
+    

@@ -1,10 +1,3 @@
-- name: Update package cache and fix broken dependencies
-  become: yes
-  ansible.builtin.shell: |
-    apt update -y
-    apt --fix-broken install -y
-    apt upgrade -y
-
 - name: Ensure systemd-resolved config directory exists
   file:
     path: /etc/systemd/resolved.conf.d
@@ -40,35 +33,20 @@
 - name: Apply sysctl settings
   command: sysctl --system
 
-- name: Install prerequisites
-  apt:
-    name:
-      - software-properties-common
-      - curl
-      - apt-transport-https
-      - ca-certificates
-    state: present
-    update_cache: yes
-
 - name: Add Kubernetes GPG key
-  ansible.builtin.apt_key:
-    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    state: present
+  shell: |
+    mkdir -p /etc/apt/keyrings
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version_short }}/deb/Release.key | \
+      gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+  args:
+    creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
-- name: Add Kubernetes apt key
-  ansible.builtin.apt_key:
-    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    state: present
+- name: Add Kubernetes apt repository
+  copy:
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    content: |
+      deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version_short }}/deb/ /
 
-- name: Add Kubernetes repo
-  ansible.builtin.apt_repository:
-    repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
-    state: present
-
-
-- name: Update APT cache
-  apt:
-    update_cache: yes
 
 - import_tasks: install_crio.yml
 - import_tasks: install_kubernetes.yml

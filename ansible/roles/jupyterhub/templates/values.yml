@@ -79,5 +79,4 @@ hub:
       minimum_password_length: 6
       allow_self_approval: true
 
-imagePullSecrets:
-  - name: jupyterhub2
+

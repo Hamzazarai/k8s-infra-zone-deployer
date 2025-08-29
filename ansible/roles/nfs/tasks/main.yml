@@ -13,7 +13,15 @@
 
 - name: Create export directory
   file:
-    path: /srv/nfs/kubedata
+    path: /srv/nfs/kubedata/share
+    state: directory
+    mode: '0777'
+    owner: nobody
+    group: nogroup
+
+- name: Create export directory
+  file:
+    path: /srv/nfs/kubedata/hub-db-dir
     state: directory
     mode: '0777'
     owner: nobody

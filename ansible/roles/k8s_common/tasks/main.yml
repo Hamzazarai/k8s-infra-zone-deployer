@@ -5,6 +5,13 @@
     apt --fix-broken install -y
     apt upgrade -y
 
+- name: Install NFS client
+  become: yes
+  apt:
+    name: nfs-common
+    state: present
+    update_cache: yes
+
 - name: Ensure systemd-resolved config directory exists
   file:
     path: /etc/systemd/resolved.conf.d

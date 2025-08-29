@@ -1,14 +1,17 @@
-- name: Sleep before deployment
-  hosts: localhost
-  tasks:
-    - pause:
-        seconds: 60
+# - name: Sleep before deployment
+#   hosts: localhost
+#   tasks:
+#     - pause:
+#         seconds: 60
 
-- name: Deploy HAProxy
-  hosts: haproxy
-  roles:
-    - haproxy
-  when: groups['haproxy'] | length > 0
+# - name: Deploy HAProxy
+#   hosts: haproxy
+#   become: true
+#   tasks:
+#     - name: Include HAProxy role if group exists
+#       include_role:
+#         name: haproxy
+#       when: groups['haproxy'] | length > 0
 
 - name: Setup Kubernetes Cluster
   import_playbook: k8s-setup.yml
@@ -16,23 +19,32 @@
 
 - name: Deploy NFS server
   hosts: nfs
-  roles:
-    - nfs
-  when: groups['nfs'] | length > 0
+  become: true
+  tasks:
+    - name: Include NFS role if group exists
+      include_role:
+        name: nfs
+      when: groups['nfs'] | length > 0
 
 - name: Deploy Harbor
   hosts: harbor
-  roles:
-    - harbor
-  when: groups['harbor'] | length > 0
+  become: true
+  tasks:
+    - name: Include Harbor role if group exists
+      include_role:
+        name: harbor
+      when: groups['harbor'] | length > 0
 
 - name: Deploy Monitoring (Prometheus & Grafana)
-  import_playbook: helm_monitoring.yml
+  import_playbook : helm_monitoring.yml
   when: groups['masters'] | length > 0
 
 - name: Deploy JupyterHub
-  hosts: masters[0]   # run only on the first master
-  roles:
-    - jupyterhub
-  when: (groups['masters'] | length > 0) and (groups['nfs'] | length > 0)
-
+  hosts: masters[0]
+  become: true
+  tasks:
+    - name: Run JupyterHub role on first master only
+      include_role:
+        name: jupyterhub
+      run_once: true
+      when: (groups['masters'] | length > 0) and (groups['nfs'] | length > 0)
